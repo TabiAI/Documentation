@@ -43,5 +43,6 @@
       "label": "Dashboard",
       "href": "https://dashboard.travelbase.ai"
     }
-  }
+  },
+  "favicon": "/images/Vector.svg"
 }
