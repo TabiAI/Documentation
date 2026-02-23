@@ -2,11 +2,18 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "Travelbase Docs",
-  "colors": {
-    "primary": "#7c3aed",
-    "light": "#a855f7",
-    "dark": "#5b21b6"
+
+  "logo": {
+    "light": "/images/Travelbase_logo.png",
+    "dark": "/images/Travelbase_logo_white.png"
   },
+
+  "colors": {
+    "primary": "#675DFF",
+    "light": "#675DFF",
+    "dark": "#675DFF"
+  },
+
   "navigation": {
     "tabs": [
       {
@@ -44,5 +51,6 @@
       "href": "https://dashboard.travelbase.ai"
     }
   },
+
   "favicon": "/images/Vector.svg"
 }
