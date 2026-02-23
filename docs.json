@@ -2,18 +2,15 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "Travelbase Docs",
-
   "logo": {
     "light": "/images/Travelbase_logo.png",
     "dark": "/images/Travelbase_logo_white.png"
   },
-
   "colors": {
     "primary": "#675DFF",
     "light": "#675DFF",
     "dark": "#675DFF"
   },
-
   "navigation": {
     "tabs": [
       {
@@ -21,12 +18,16 @@
         "groups": [
           {
             "group": "Overview",
-            "pages": ["index", "tenant-api/overview"]
+            "pages": [
+              "index",
+              "tenant-api/overview",
+              "tenant-api/api.key"
+            ]
           },
           {
             "group": "API reference",
             "pages": [
-              "tenant-api/auth",
+              "tenant-api/tenant",
               "tenant-api/wallet",
               "tenant-api/locations",
               "tenant-api/offers",
@@ -42,15 +43,10 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:contact@tabi.global"
+        "href": "mailto:contact@tabi.global",
+        "icon": "mail"
       }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.travelbase.ai"
-    }
+    ]
   },
-
   "favicon": "/images/Vector.svg"
 }

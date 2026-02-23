@@ -1,0 +1,157 @@
+---
+title: "Tenant"
+description: "View and update tenant-level configuration for your Travelbase account."
+---
+
+<Note>
+    ### Tenant scope
+    Every request is scoped to the tenant that owns the API key you use.
+    Use this section to **verify which tenant you’re authenticated as** and to **configure tenant-wide settings** like
+    webhooks and defaults.
+</Note>
+
+<Card title="Base URL" icon="globe">
+    Use the correct base URL for your environment.
+    **Sandbox:** `https://sandbox-api.travelbase.ai`
+
+    [//]: # (**Live:** `https://api.travelbase.ai`)
+</Card>
+
+<Card title="Authentication" icon="key">
+    Include your API key in the `Authorization` header.
+    <CodeBlock language="http">{`x-api-key: <api_key>`}</CodeBlock>
+</Card>
+
+## Get tenant
+
+<Card title="GET /v1/tenant" icon="building">
+    Returns the tenant associated with the API key used in the request.
+</Card>
+
+### Example request
+
+```bash
+curl -X GET "https://api.travelbase.ai/v1/tenant" \
+  -H "Authorization: Bearer tb_live_xxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json"
+```
+# Tenant Configuration
+
+The Tenant object defines the organizational context for all resources in the Travelbase API. This section covers how to retrieve and update your tenant-wide settings.
+
+---
+
+## The Tenant Object
+
+<Card title="Tenant Schema" icon="braces">
+    The tenant object serves as the root configuration for your API integration, managing identity, defaults, and
+    connectivity.
+</Card>
+
+### Fields
+
+<CardGroup cols={2}>
+    <Card title="Identity" icon="id-card">
+        - `id` (string) — **immutable**
+        - `name` (string)
+        - `slug` (string) — **immutable**
+    </Card>
+    <Card title="Environment & Status" icon="shield">
+        - `environment` (sandbox | live) — **immutable**
+        - `status` (active | suspended | disabled)
+    </Card>
+    <Card title="Defaults" icon="sparkles">
+        - `default_currency` (ISO 4217)
+        - `timezone` (IANA timezone)
+    </Card>
+    <Card title="Webhooks" icon="bell">
+        - `webhook_url` (string | null)
+        - `webhook_enabled` (boolean)
+    </Card>
+    <Card title="Metadata" icon="tag">
+        - `metadata` (object) — arbitrary key/value pairs
+    </Card>
+    <Card title="Timestamps" icon="clock">
+        - `created_at` (ISO 8601)
+        - `updated_at` (ISO 8601)
+    </Card>
+</CardGroup>
+
+---
+
+## Update Tenant
+
+<Note>
+    ### What you can update
+    This endpoint is intended for **tenant-wide configuration** (e.g., webhooks and defaults). You **cannot** update
+    immutable identity fields like `id`, `slug`, or `environment`.
+</Note>
+
+<Card title="PATCH /v1/tenant" icon="settings">
+    Updates tenant configuration fields.
+</Card>
+
+### Updatable Fields
+
+<CardGroup cols={2}>
+    <Card title="Webhook Settings" icon="webhook">
+        `webhook_url`, `webhook_enabled`
+    </Card>
+    <Card title="Defaults" icon="sliders">
+        `default_currency`, `timezone`
+    </Card>
+</CardGroup>
+
+### Example Request
+
+```bash
+curl -X PATCH "[https://api.travelbase.ai/v1/tenant](https://api.travelbase.ai/v1/tenant)" \
+  -H "Authorization: Bearer tb_live_xxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "webhook_url": "[https://acme.com/webhooks/travelbase](https://acme.com/webhooks/travelbase)",
+    "webhook_enabled": true,
+    "default_currency": "USD",
+    "timezone": "Asia/Qatar",
+    "metadata": { "plan": "enterprise" }
+  }'
+```
+
+### Example Response
+```json
+{
+  "id": "ten_8f3a2c1b",
+  "name": "Acme Travel",
+  "slug": "acme-travel",
+  "environment": "live",
+  "status": "active",
+  "default_currency": "USD",
+  "timezone": "Asia/Qatar",
+  "webhook_url": "[https://acme.com/webhooks/travelbase](https://acme.com/webhooks/travelbase)",
+  "webhook_enabled": true,
+  "created_at": "2026-02-23T12:00:00Z",
+  "updated_at": "2026-02-23T12:05:21Z",
+  "metadata": { "plan": "enterprise" }
+}
+```
+<CardGroup cols={3}>
+    <Card title="401 Unauthorized" icon="lock">
+        The API key is missing, invalid, expired, or has been rotated.
+    </Card>
+    <Card title="403 Forbidden" icon="ban">
+        Your tenant is suspended or disabled.
+    </Card>
+    <Card title="422 Unprocessable Entity" icon="triangle-exclamation">
+        One or more fields are invalid (for example, an invalid timezone).
+    </Card>
+</CardGroup>
+
+Next Steps
+<CardGroup cols={2}>
+    <Card title="API Keys" icon="key" href="/tenant-api/api-key">
+        Learn how to create and rotate API keys.
+    </Card>
+    <Card title="Webhooks" icon="webhook" href="/webhooks">
+        Configure webhooks and verify signatures.
+    </Card>
+</CardGroup>
