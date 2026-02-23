@@ -1,41 +1,167 @@
 ---
 title: "Overview"
-description: "Base URLs, auth, rate limits, and error format."
+description: "Base URLs, authentication, rate limits, idempotency, and error handling."
 ---
 
-# Tenant API overview
+## Tenant API Overview
 
-This document describes the tenant-facing API used by businesses to search offers, create orders, ticket, and manage webhooks.
+The Tenant API allows businesses to search offers, create and manage orders, issue tickets, and configure webhooks programmatically.
 
-## Base URLs
+<CardGroup cols={2}>
+    <Card title="Sandbox URL" icon="flask">
+        `https://sandbox.travelbase.ai`
 
-- Sandbox: `https://sandbox.travelbase.ai`
-- Live: `https://live.travelbase.ai`
+        Isolated environment for development and testing.
+    </Card>
+    <Card title="Live URL" icon="bolt">
+        `https://live.travelbase.ai`
+
+        Production environment for real-world operations.
+    </Card>
+</CardGroup>
+
+<Note>
+    The sandbox environment is fully isolated. Data created here does not affect your production environment or live billing.
+</Note>
+
+---
 
 ## Authentication
 
-You can authenticate in one of two ways:
+All API requests must be authenticated using either an API key or a bearer token.
 
-1) **Bearer token** (dashboard / user session)
-```http
-Authorization: Bearer <jwt>
-```
+<Tabs>
+    <Tab title="API Key (Recommended)">
+        Use API keys for secure, server-to-server integrations.
 
-2) **API key** (server-to-server)
-```http
-x-api-key: <api_key>
-```
+        ```http
+        x-api-key: <your_api_key>
+        ```
 
-API keys are created/rotated from the dashboard **Settings → API keys**.
+        <Tip>
+            API keys provide stable, long-lived authentication and are ideal for backend systems.
+        </Tip>
+    </Tab>
+    <Tab title="Bearer Token">
+        Use bearer tokens when acting on behalf of a signed-in dashboard user.
 
-## Rate limits
+        ```http
+        Authorization: Bearer <your_jwt>
+        ```
+    </Tab>
+</Tabs>
 
-Default: **120 requests per minute** per key (or per IP if unauthenticated).
+<Card title="Security Best Practices" icon="shield-check">
+    **Managing API Keys:** Keys can be created and rotated in the dashboard under **Settings → API Keys**.
 
-## Errors
+    <Warning>
+        Never expose API keys in client-side applications (web, mobile, or public code). Always store keys securely in backend systems or secret managers.
+    </Warning>
+</Card>
 
-Errors are JSON:
+---
+
+## Rate Limits
+
+The API enforces rate limits to ensure system stability and fair usage across all tenants.
+
+<Card title="Default Rate Limit" icon="gauge-high">
+    **120 requests per minute** per API key.
+</Card>
+
+If a request exceeds the limit, the API returns a `429 Too Many Requests` status code.
+
+<Tip>
+    Implement retry logic using **exponential backoff** to safely handle rate limit responses and minimize service disruptions.
+</Tip>
+
+---
+
+## Error Handling
+
+Errors are returned using standard HTTP status codes and structured JSON responses to help you debug quickly.
+s
+### Error Response Format
+
 ```json
-{ "error": "Message" }
+{
+  "error": "Invalid API key"
+}
 ```
-Validation errors may include `details` with field-level info.
+
+### Validation Errors
+
+Validation failures may include additional field-level details to help users correct their input:
+
+```json
+{
+  "error": "Validation failed",
+  "details": {
+    "email": "Email is required"
+  }
+}
+```
+
+# API Reference & Best Practices
+
+Understanding how to handle responses and ensure data integrity is crucial for a smooth integration.
+
+---
+
+## HTTP Status Codes
+
+| Code | Meaning | Description |
+| :--- | :--- | :--- |
+| **200** | Success | The request was successful. |
+| **201** | Resource Created | A new resource has been successfully created. |
+| **400** | Invalid Request | The request was unacceptable (e.g., missing parameters). |
+| **401** | Authentication Failed | No valid API key provided. |
+| **403** | Forbidden | The API key does not have permissions for this resource. |
+| **404** | Resource Not Found | The requested resource doesn't exist. |
+| **429** | Rate Limit Exceeded | Too many requests hit the API too quickly. |
+| **500** | Internal Server Error | Something went wrong on our end. |
+
+<Warning>
+    **CRITICAL:** Always check the **HTTP status code** to determine success or failure before parsing the response body. Do not rely solely on the response content.
+</Warning>
+
+---
+
+## Idempotency
+
+Idempotency prevents duplicate resource creation caused by retries or network interruptions. Include an idempotency key when performing write operations (**POST** or **PUT**).
+
+
+
+```http
+Idempotency-Key: <unique_uuid>
+
+```
+
+<Note>
+    Idempotency Guarantee: If a request with the same key is received multiple times, the API will return the original response instead of creating duplicate resources. Use UUID v4 for these keys.
+</Note>
+
+## Next Steps
+## Explore our guides to start building your integration.
+
+<CardGroup cols={3}>
+    <Card title="Tenants" icon="users" href="/tenants">
+        Manage organizations and sub-accounts.
+    </Card>
+    <Card title="Wallets" icon="wallet" href="/wallets">
+        Handle balances, funds, and transactions.
+    </Card>
+    <Card title="Locations" icon="map-pin" href="/locations">
+        Manage physical and virtual service areas.
+    </Card>
+    <Card title="Offers" icon="tags" href="/offers">
+        Search available travel offers and pricing.
+    </Card>
+    <Card title="Orders" icon="cart-shopping" href="/orders">
+        The full flow for creating and managing orders.
+    </Card>
+    <Card title="Webhooks" icon="webhook" href="/webhooks">
+        Receive real-time notifications for event updates.
+    </Card>
+</CardGroup>

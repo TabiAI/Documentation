@@ -1,9 +1,27 @@
 ---
-title: "Auth"
-description: "Sign up, sign in, and manage API keys."
+title: "Authentication"
+description: "Authenticate requests and securely manage API keys."
 ---
 
-# Auth
+## Overview
+Use API keys to authenticate requests to the API. Keep keys secret and rotate them if they are exposed.
+
+## Authentication methods
+### API key (recommended)
+Send your key in the `Authorization` header:
+
+- `Authorization: Bearer <API_KEY>`
+
+> Never put API keys in client-side apps (mobile/web). Use them only on trusted servers.
+
+## Get an API key
+1. Create an account in the dashboard.
+2. Go to **Settings → API Keys**.
+3. Create a key for the environment you need:
+- **Test** for development
+- **Live** for production
+
+# Authentication
 
 ## POST /v1/auth/signup
 Create a tenant + admin user.

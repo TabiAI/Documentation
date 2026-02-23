@@ -1,17 +1,33 @@
 ---
 title: "Travelbase API"
-description: "Tenant API documentation for Travelbase."
+description: "Introduction to the Travelbase Tenant API."
 ---
 
-# Travelbase API docs
+<Note>
+    ### Welcome to the Travelbase Tenant API
 
-Welcome to the tenant API documentation. Use these endpoints to search offers, create orders, ticket bookings, and receive webhooks.
+    Use the Travelbase Tenant API to integrate travel offers, create and manage orders, issue tickets, and receive real-time webhook events.
+
+    The API is designed for secure, reliable server-to-server integrations and supports both sandbox and live environments.
+</Note>
 
 ## Start here
 
-- [Tenant API overview](/tenant-api/overview)
+<Card
+    title="Tenant API Overview"
+    icon="book-open"
+    href="/tenant-api/overview"
+>
+    Learn about authentication, environments, rate limits, idempotency, and error handling.
+</Card>
 
 ## Environments
 
-- **Sandbox**: `https://sandbox.travelbase.ai`
-- **Live**: `https://live.travelbase.ai`
+| Environment | Base URL |
+|------------|----------|
+| Sandbox | `https://sandbox.travelbase.ai` |
+| Live | `https://live.travelbase.ai` |
+
+<Tip>
+    Use the sandbox environment for development and testing before moving to production.
+</Tip>
