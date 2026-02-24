@@ -1,44 +1,123 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Travelbase Business API Documentation",
+  "name": "Travelbase Business API",
   "logo": {
     "light": "/images/Travelbase_logo.png",
     "dark": "/images/Travelbase_logo_white.png"
   },
+
   "colors": {
     "primary": "#675DFF",
     "light": "#675DFF",
     "dark": "#675DFF"
   },
+
   "navigation": {
     "tabs": [
+
       {
-        "tab": "Getting Started",
+        "tab": "Getting started",
         "groups": [
           {
-            "group": "Overview",
+            "group": "Introduction",
             "pages": [
               "index",
               "tenant-api/overview",
               "tenant-api/api.key"
             ]
+          }
+        ]
+      },
+
+      {
+        "tab": "Concepts",
+        "groups": [
+
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "tenant-api/core-concepts",
+              "tenant-api/locations-concept",
+              "tenant-api/passengers",
+              "tenant-api/slices",
+              "tenant-api/cabin-classes"
+            ]
+          },
+
+          {
+            "group": "Objects",
+            "pages": [
+              "tenant-api/objects/offer-request",
+              "tenant-api/objects/offer",
+              "tenant-api/objects/order",
+              "tenant-api/objects/passenger",
+              "tenant-api/objects/slice",
+              "tenant-api/objects/segment"
+            ]
+          }
+
+        ]
+      },
+
+      {
+        "tab": "API reference",
+        "groups": [
+          {
+            "group": "Location",
+            "pages": [
+              "tenant-api/locations"
+            ]
           },
           {
-            "group": "API reference",
+            "group": "Search",
+            "pages": [
+              "tenant-api/offers"
+            ]
+          },
+
+          {
+            "group": "Orders",
+            "pages": [
+              "tenant-api/orders"
+            ]
+          },
+
+          {
+            "group": "Financial",
+            "pages": [
+              "tenant-api/wallet"
+            ]
+          },
+
+          {
+            "group": "Platform",
             "pages": [
               "tenant-api/tenant",
-              "tenant-api/wallet",
-              "tenant-api/locations",
-              "tenant-api/offers",
-              "tenant-api/orders",
               "tenant-api/webhooks"
+            ]
+          }
+
+        ]
+      },
+
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Workflows",
+            "pages": [
+              "tenant-api/guides/search-flights",
+              "tenant-api/guides/book-flight",
+              "tenant-api/guides/handle-expiration"
             ]
           }
         ]
       }
+
     ]
   },
+
   "navbar": {
     "links": [
       {
@@ -46,7 +125,22 @@
         "href": "mailto:contact@tabi.global",
         "icon": "mail"
       }
-    ]
+    ],
+
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://dashboard.travelbase.ai"
+    }
   },
+
+  "footer": {
+    "socials": {
+      "website": "https://travelbase.ai",
+      "linkedin": "https://linkedin.com/company/travelbase-ai",
+      "twitter": "https://twitter.com/travelbase-ai"
+    }
+  },
+
   "favicon": "/images/Vector.svg"
 }

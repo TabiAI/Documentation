@@ -1,0 +1,78 @@
+---
+title: "Core concepts"
+description: "Understand the core objects and concepts used to search and book flights."
+icon: "layers"
+---
+
+The Travelbase Air API is built around a small set of core concepts that define how flights are searched, priced, and booked.
+
+Understanding these concepts will help you construct valid offer requests and interpret results correctly.
+
+---
+
+## Overview
+
+Flight search and booking in Travelbase follows a predictable lifecycle:
+
+<CardGroup cols={3}>
+    <Card title="1. Define trip" icon="map">
+        Specify slices, passengers, and cabin class.
+    </Card>
+
+    <Card title="2. Retrieve offers" icon="search">
+        Travelbase searches airline suppliers and returns offers.
+    </Card>
+
+    <Card title="3. Create order" icon="ticket">
+        Use an offer to create a confirmed booking.
+    </Card>
+</CardGroup>
+
+---
+
+## Locations
+
+A location represents an airport used as an origin or destination.
+
+Locations are identified using their **IATA airport code**.
+
+Example:
+
+| Airport | IATA code |
+|---|---|
+| John F. Kennedy International Airport | JFK |
+| Los Angeles International Airport | LAX |
+| Heathrow Airport | LHR |
+
+Use the Locations endpoint to search and validate airports.
+
+<Card title="Search locations" icon="map-pin" href="/tenant-api/locations">
+    Search and retrieve supported airport locations.
+</Card>
+
+---
+
+## Passengers
+
+Passengers represent the travelers included in a flight search.
+
+Each passenger must specify a supported type.
+
+Supported types:
+
+| Type | Description |
+|---|---|
+| adult | Passenger aged 12 years or older |
+| child | Passenger aged 2–11 years |
+| infant | Passenger under 2 years old |
+
+Example:
+
+```json
+{
+  "passengers": [
+    { "type": "adult" },
+    { "type": "child" }
+  ]
+}
+```
