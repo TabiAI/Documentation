@@ -1,63 +1,233 @@
 ---
 title: "Webhooks"
-description: "Configure outbound webhooks to your system."
+description: "Configure outbound webhooks to receive real-time event notifications."
+---
+Webhooks allow Travelbase to notify your system in real time when important events occur, such as orders being ticketed, refunds being created, or wallet balances changing.
+Instead of polling the API, your system receives secure HTTP POST requests whenever subscribed events occur.
+
+<CardGroup cols={2}>
+    <Card title="Real-time notifications" icon="webhook">
+        Receive events instantly when resources change.
+    </Card>
+
+    <Card title="Secure delivery" icon="shield-check">
+        Every webhook delivery includes an HMAC signature for verification.
+    </Card>
+</CardGroup>
+
 ---
 
-# Webhooks (outbound)
+## Webhook configuration object
 
-## GET /v1/webhooks
-Get current webhook config.
+The webhook configuration defines where events are delivered and which events are enabled.
 
-## PUT /v1/webhooks
-Create/update webhook config.
+| Field | Type | Description |
+|---|---|---|
+| url | string | Destination URL that receives webhook events |
+| enabled | boolean | Whether webhook delivery is enabled |
+| events | array | List of subscribed events |
+| secret | string | Signing secret used for signature verification |
+| updatedAt | string | ISO timestamp of last update |
 
-**Body**
+---
+
+## Supported events
+
+Travelbase emits webhook events for important lifecycle changes.
+
+| Event | Description |
+|---|---|
+| order.created | Order successfully created |
+| order.ticketed | Order successfully ticketed |
+| order.failed | Order failed during processing |
+| refund.created | Refund created for an order |
+| wallet.updated | Wallet balance or transaction changed |
+
+<Note>
+    Subscribe only to events your system requires to reduce unnecessary webhook traffic.
+</Note>
+
+---
+
+## Get webhook configuration
+
+Retrieve your current webhook configuration.
+
+```http
+GET /v1/webhooks
+```
+
+# Response
+ ```json
+{
+"webhook": {
+"url": "https://example.com/webhooks",
+"enabled": true,
+"events": [
+"order.created",
+"order.ticketed"
+],
+"secret": "base64-...",
+"updatedAt": "2026-02-20T16:25:51.293Z"
+}
+}
+
+```
+# Create or update webhook configuration
+Create or update your webhook endpoint and event subscriptions.
+
+```http
+PUT /v1/webhooks
+```
+
+# Request body
+
 ```json
 {
-  "url": "https://example.com/webhooks",
-  "enabled": true,
-  "events": [
-    "order.created",
-    "order.ticketed",
-    "order.failed",
-    "refund.created",
-    "wallet.updated"
-  ],
-  "rotateSecret": false
+"url": "https://example.com/webhooks",
+"enabled": true,
+"events": [
+"order.created",
+"order.ticketed",
+"order.failed",
+"refund.created",
+"wallet.updated"
+],
+"rotateSecret": false
 }
 ```
 
-**Response**
+---
+
+## Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| url | string | Yes | HTTPS endpoint that receives events |
+| enabled | boolean | Yes | Enable or disable webhook delivery |
+| events | array | Yes | Events to subscribe to |
+| rotateSecret | boolean | No | Generate a new signing secret |
+
+---
+
+## Response
+
 ```json
 {
   "webhook": {
-    "url": "...",
+    "url": "https://example.com/webhooks",
     "enabled": true,
-    "events": [...],
+    "events": [
+      "order.created",
+      "order.ticketed"
+    ],
     "secret": "base64-...",
-    "updatedAt": "..."
+    "updatedAt": "2026-02-20T16:25:51.293Z"
   }
 }
 ```
+<Warning> If you rotate your webhook secret, you must immediately update your verification logic. </Warning>
 
-## Delivery format
+# Webhook delivery format
+Travelbase delivers webhook events as HTTP POST requests with a JSON payload.
+Example delivery
 ```json
 {
-  "id": "uuid",
-  "type": "order.ticketed",
-  "created_at": "2026-02-20T16:25:51.293Z",
-  "data": { ... }
+"id": "evt_01hzy9k2yz",
+"type": "order.ticketed",
+"created_at": "2026-02-20T16:25:51.293Z",
+"data": {
+"order_id": "ord_123",
+"status": "ticketed"
+}
 }
 ```
 
-## Signature verification
-Each delivery includes:
-- `x-webhook-id`
-- `x-webhook-event`
-- `x-webhook-timestamp`
-- `x-webhook-signature`
+---
 
-Signature is:
+## Delivery headers
+
+Each webhook delivery includes security and metadata headers to help your system verify authenticity and process events safely.
+
+| Header | Description |
+|---|---|
+| `x-webhook-id` | Unique identifier for the webhook delivery |
+| `x-webhook-event` | Event type (for example, `order.ticketed`) |
+| `x-webhook-timestamp` | ISO timestamp indicating when the event was generated |
+| `x-webhook-signature` | HMAC SHA-256 signature used to verify authenticity |
+
+<Note>
+    Always verify webhook signatures before processing events to prevent unauthorized requests.
+</Note>
+
+---
+
+## Signature verification
+
+Travelbase signs each webhook delivery using your webhook secret. Your system must verify this signature before accepting the event.
+
+### Signature format
+
+The signature is generated using HMAC SHA-256:
+
 ```text
 HMAC_SHA256(secret, `${timestamp}.${payload}`)
 ```
+---
+
+### Signature components
+
+The signature is generated using the following components:
+
+| Component | Description |
+|---|---|
+| `secret` | Your webhook signing secret |
+| `timestamp` | Value from the `x-webhook-timestamp` header |
+| `payload` | Raw HTTP request body exactly as received |
+
+---
+
+### Verification example (Node.js)
+
+Use the following example to verify webhook signatures securely:
+
+```javascript
+import crypto from "crypto";
+
+export function verifyWebhookSignature({
+  secret,
+  payload,
+  timestamp,
+  signature
+}) {
+  const signedPayload = `${timestamp}.${payload}`;
+
+  const expectedSignature = crypto
+    .createHmac("sha256", secret)
+    .update(signedPayload)
+    .digest("hex");
+
+  return crypto.timingSafeEqual(
+    Buffer.from(signature, "hex"),
+    Buffer.from(expectedSignature, "hex")
+  );
+}
+```
+
+<Tip>
+    Always use the raw request body exactly as received. Any modification to the payload will invalidate the signature.
+</Tip>
+
+# Delivery guarantees
+Travelbase provides reliable and fault-tolerant webhook delivery to ensure your system receives critical events.
+<CardGroup cols={2}> <Card title="Automatic retries" icon="repeat"> Failed webhook deliveries are retried
+    automatically using exponential backoff until successful. </Card> <Card title="At-least-once delivery"
+                                                                            icon="arrow-right"> Webhooks are guaranteed to be
+    delivered at least once. Your system must safely handle duplicate deliveries. </Card> </CardGroup>
+Best practices
+Follow these best practices to ensure secure, reliable, and production-ready webhook handling.
+<CardGroup cols={2}> <Card title="Verify signatures" icon="shield-check"> Always verify the webhook signature before
+    processing events. </Card> <Card title="Respond quickly" icon="clock"> Return an HTTP 200 response immediately after
+    receiving the webhook to prevent retries. </Card> <Card title="Implement idempotency" icon="copy"> Store and track
+    webhook event IDs to prevent duplicate processing. </Card> <Card title="Use secure endpoints" icon="lock"> Only
+    configure HTTPS endpoints to ensure secure communication. </Card> </CardGroup> ```
