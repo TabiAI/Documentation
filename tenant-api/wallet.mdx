@@ -19,7 +19,8 @@ Represents the current wallet state.
 | Field       | Type   | Description |
 |------------|--------|-------------|
 | id         | string | Unique wallet identifier |
-| balance    | string | Current wallet balance in minor units |
+| tenantId   | string | Unique Tenant identifier |
+| balanceCents    | string | Current wallet balance in minor units (Cents in this case) |
 | currency   | string | ISO 4217 currency code |
 | created_at | string | ISO 8601 timestamp |
 
@@ -88,7 +89,8 @@ console.log(wallet.balance);
 
     <Tab title="JavaScript">
         ```javascript
-        const response = await fetch("[https://sandbox.travelbase.ai/v1/wallet](https://sandbox.travelbase.ai/v1/wallet)", {
+        const response = await
+        fetch("[https://sandbox.travelbase.ai/v1/wallet](https://sandbox.travelbase.ai/v1/wallet)", {
         headers: {
         "x-api-key": process.env.TRAVELBASE_API_KEY
     }
@@ -101,7 +103,8 @@ console.log(wallet.balance);
 
     <Tab title="Go">
         ```go
-        req, _ := http.NewRequest("GET", "[https://sandbox.travelbase.ai/v1/wallet](https://sandbox.travelbase.ai/v1/wallet)", nil)
+        req, _ := http.NewRequest("GET",
+        "[https://sandbox.travelbase.ai/v1/wallet](https://sandbox.travelbase.ai/v1/wallet)", nil)
         req.Header.Set("x-api-key", apiKey)
 
         client := &http.Client{}
@@ -111,10 +114,10 @@ console.log(wallet.balance);
     </Tab>
 </Tabs>
 
-# Get Wallet Ledger
+# Get Wallet Ledger Entries
 The ledger endpoint allows you to retrieve a list of immutable ledger entries.
 
-Retrieve the most recent ledger entries. Use this for reconciliation and displaying transaction history to users.
+Retrieve the 50 most recent ledger entries. Use this for reconciliation and displaying transaction history to users.
 
 <Note>
     This endpoint is rate-limited and returns a maximum of 50 entries per request.
@@ -171,7 +174,7 @@ The Travelbase API uses standard HTTP status codes to indicate success or failur
 
 ## Error Object
 
-<ResponseField name="error.type" type="string">
+<ResponseField name="error.statusCode" type="string">
     Machine-readable error type.
 </ResponseField>
 
@@ -200,13 +203,20 @@ The Travelbase API uses standard HTTP status codes to indicate success or failur
 ## Example Error Response
 
 ```json
+
 {
-  "error": {
-    "type": "authentication_error",
-    "message": "Invalid API key",
-    "code": "invalid_api_key"
-  }
-}
+        "success": false,
+        "statusCode": 400,
+        "errorCode": "TB_AUTH_101",
+        "message": "Invalid API key",
+        "fault": "client",
+        "retryable": true,
+        "suggestedAction": "verify your API key and try again",
+        "reason": "Invalid API key",
+        "environment": "sandbox",
+        "apiVersion": "1.0.0"
+    }
+
 ```
 
 <CardGroup cols={2}>

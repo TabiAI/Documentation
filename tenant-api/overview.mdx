@@ -92,11 +92,19 @@ If a request exceeds the limit, the API returns a `429 Too Many Requests` status
 Errors are returned using standard HTTP status codes and structured JSON responses to help you debug quickly.
 
 ### Error Response Format
-
 ```json
 {
-  "error": "Invalid API key"
-}
+        "success": false,
+        "statusCode": 400,
+        "errorCode": "TB_AUTH_101",
+        "message": "Invalid API key",
+        "fault": "client",
+        "retryable": true,
+        "suggestedAction": "verify your API key and try again",
+        "reason": "Invalid API key",
+        "environment": "sandbox",
+        "apiVersion": "1.0.0"
+    }
 ```
 
 ### Validation Errors
@@ -105,10 +113,24 @@ Validation failures may include additional field-level details to help users cor
 
 ```json
 {
-  "error": "Validation failed",
-  "details": {
-    "email": "Email is required"
-  }
+    "success": false,
+    "status": "error",
+    "statusCode": 400,
+    "errorCode": "TB_VAL_302",
+    "message": "Validation failed",
+    "fault": "client",
+    "retryable": true,
+    "reason": [
+        {
+            "field": "email",
+            "message": "Required"
+        },
+        {
+            "field": "password",
+            "message": "Required"
+        }
+    ],
+    "apiVersion": "1.0.0"
 }
 ```
 

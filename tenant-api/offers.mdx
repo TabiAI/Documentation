@@ -40,8 +40,8 @@ Client->>Travelbase API: POST /v1/air/orders
 
 # Create Offer Request
 
-```http
-POST /v1/air/search
+``` http
+ POST /v1/air/search
 Creates an offer request and optionally returns available offers.
 This endpoint initiates a supplier search across airline systems.
 ```
@@ -66,7 +66,7 @@ This endpoint initiates a supplier search across airline systems.
 "cabin_class": "economy"
 },
 "return_offers": true,
-"supplier_timeout": 20
+"supplier_timeout": 2
 }
 ```
 
@@ -79,7 +79,7 @@ This endpoint initiates a supplier search across airline systems.
 | data.passengers | array | Yes | Passenger list |
 | data.cabin_class | string | Yes | Cabin class |
 | return_offers | boolean | No | Return offers immediately |
-| supplier_timeout | integer | No | Supplier timeout in seconds |
+| supplier_timeout | integer | No | Supplier timeout in seconds, ensure it's greater or equals to 2  |
 
 ---
 

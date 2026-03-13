@@ -97,21 +97,29 @@ Returns airport suggestions matching a search query.
 # Example response
 ```json
 {
-"data": [
-{
-"id": "arp_jfk_us",
-"type": "airport",
-"iata_code": "JFK",
-"name": "John F. Kennedy International Airport",
-"city_name": "New York",
-"iata_city_code": "NYC",
-"iata_country_code": "US",
-"latitude": 40.640556,
-"longitude": -73.778519,
-"time_zone": "America/New_York"
+    "success": true,
+    "message": "Locations fetched successfully.",
+    "data": {
+        "data": [
+            {
+                "airports": null,
+                "city_name": "Araraquara",
+                "iata_city_code": "AQA",
+                "iata_country_code": "BR",
+                "icao_code": "SBAQ",
+                "iata_code": "AQA",
+                "latitude": -21.805839,
+                "longitude": -48.139741,
+                "city": null,
+                "time_zone": "America/Sao_Paulo",
+                "type": "airport",
+                "name": "Araraquara Airport",
+                "id": "arp_aqa_br"
+            }
+        ]
+    }
 }
-]
-}
+
 ```
 
 ---
@@ -213,6 +221,8 @@ If no matching airports are found, the API returns:
 
 ```json
 {
+  "success": true,
+  "message": "Locations retrieved successfully.",
   "data": []
 }
 ```

@@ -60,17 +60,19 @@ GET /v1/webhooks
 # Response
  ```json
 {
-"webhook": {
-"url": "https://example.com/webhooks",
-"enabled": true,
-"events": [
-"order.created",
-"order.ticketed"
-],
-"secret": "base64-...",
-"updatedAt": "2026-02-20T16:25:51.293Z"
-}
-}
+"success": "true",
+"data":{
+    "webhook": {
+    "url": "https://example.com/webhooks",
+    "enabled": true,
+    "events": [
+    "order.created",
+    "order.ticketed"
+    ],
+    "secret": "base64-...",
+    "updatedAt": "2026-02-20T16:25:51.293Z"
+    }
+}}
 
 ```
 # Create or update webhook configuration
@@ -114,16 +116,18 @@ PUT /v1/webhooks
 
 ```json
 {
-  "webhook": {
-    "url": "https://example.com/webhooks",
-    "enabled": true,
-    "events": [
-      "order.created",
-      "order.ticketed"
-    ],
-    "secret": "base64-...",
-    "updatedAt": "2026-02-20T16:25:51.293Z"
-  }
+  "success": "true",
+  "data": {
+    "webhook": {
+      "url": "https://example.com/webhooks",
+      "enabled": true,
+      "events": [
+        "order.created",
+        "order.ticketed"
+      ],
+      "secret": "base64-...",
+      "updatedAt": "2026-02-20T16:25:51.293Z"
+  }}
 }
 ```
 <Warning> If you rotate your webhook secret, you must immediately update your verification logic. </Warning>
@@ -131,6 +135,7 @@ PUT /v1/webhooks
 # Webhook delivery format
 Travelbase delivers webhook events as HTTP POST requests with a JSON payload.
 Example delivery
+
 ```json
 {
 "id": "evt_01hzy9k2yz",
@@ -222,7 +227,8 @@ export function verifyWebhookSignature({
 Travelbase provides reliable and fault-tolerant webhook delivery to ensure your system receives critical events.
 <CardGroup cols={2}> <Card title="Automatic retries" icon="repeat"> Failed webhook deliveries are retried
     automatically using exponential backoff until successful. </Card> <Card title="At-least-once delivery"
-                                                                            icon="arrow-right"> Webhooks are guaranteed to be
+                                                                            icon="arrow-right"> Webhooks are guaranteed
+    to be
     delivered at least once. Your system must safely handle duplicate deliveries. </Card> </CardGroup>
 Best practices
 Follow these best practices to ensure secure, reliable, and production-ready webhook handling.
