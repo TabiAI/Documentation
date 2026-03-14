@@ -140,314 +140,39 @@ curl https://sandbox.travelbase.ai/v1/air/search \
 
 # Response
 ```json
- {              "success": true,
-                "message": "Flight search completed successfully",
-                "data": [{
-                "total_emissions_kg": "637",
-                "intended_total_amount": "224.24",
-                "intended_services": null,
-                "intended_base_amount": "190.04",
-                "available_airline_credit_ids": [],
-                "payment_requirements": {
-                    "requires_instant_payment": false,
-                    "price_guarantee_expires_at": "2026-03-15T17:37:32Z",
-                    "payment_required_by": "2026-03-16T17:37:32Z"
-                },
-                "available_services": null,
-                "supported_passenger_identity_document_types": [
-                    "passport",
-                    "known_traveler_number",
-                    "passenger_redress_number"
-                ],
-                "passenger_identity_documents_required": false,
-                "tax_currency": "USD",
-                "base_currency": "USD",
-                "supported_loyalty_programmes": [
-                    "AA",
-                    "AS",
-                    "CX",
-                    "MH",
-                    "BA",
-                    "AY",
-                    "UL",
-                    "QF",
-                    "IB",
-                    "JM",
-                    "QR",
-                    "UM",
-                    "RJ",
-                    "AT"
-                ],
-                "base_amount": "190.04",
-                "private_fares": [],
-                "tax_amount": "34.20",
-                "total_currency": "USD",
-                "slices": [
-                    {
-                        "comparison_key": "Az2Siw==",
-                        "ngs_shelf": 1,
-                        "destination_type": "airport",
-                        "origin_type": "airport",
-                        "fare_brand_name": "Basic Economy",
-                        "segments": [
-                            {
-                                "origin_terminal": "2",
-                                "destination_terminal": "1",
-                                "aircraft": null,
-                                "departing_at": "2026-03-22T16:15:00",
-                                "arriving_at": "2026-03-22T19:07:00",
-                                "operating_carrier": {
-                                    "logo_symbol_url": "https://assets.Partner.com/img/airlines/for-light-background/full-color-logo/AA.svg",
-                                    "logo_lockup_url": "https://assets.Partner.com/img/airlines/for-light-background/full-color-lockup/AA.svg",
-                                    "conditions_of_carriage_url": "https://www.aa.com/i18n/customer-service/support/conditions-of-carriage.jsp",
-                                    "iata_code": "AA",
-                                    "name": "American Airlines",
-                                    "id": "arl_00009VME7DAGiJjwomhv32"
-                                },
-                                "marketing_carrier": {
-                                    "logo_symbol_url": "https://assets.Partner.com/img/airlines/for-light-background/full-color-logo/AA.svg",
-                                    "logo_lockup_url": "https://assets.Partner.com/img/airlines/for-light-background/full-color-lockup/AA.svg",
-                                    "conditions_of_carriage_url": "https://www.aa.com/i18n/customer-service/support/conditions-of-carriage.jsp",
-                                    "iata_code": "AA",
-                                    "name": "American Airlines",
-                                    "id": "arl_00009VME7DAGiJjwomhv32"
-                                },
-                                "stops": [],
-                                "operating_carrier_flight_number": "10",
-                                "marketing_carrier_flight_number": "10",
-                                "passengers": [
-                                    {
-                                        "baggages": [
-                                            {
-                                                "quantity": 1,
-                                                "type": "checked"
-                                            },
-                                            {
-                                                "quantity": 1,
-                                                "type": "carry_on"
-                                            }
-                                        ],
-                                        "cabin_class_marketing_name": "Economy",
-                                        "passenger_id": "pas_0000B4DoPPc0RKbD6VCDcA",
-                                        "cabin": {
-                                            "amenities": {
-                                                "wifi": {
-                                                    "cost": "paid",
-                                                    "available": true
-                                                },
-                                                "seat": {
-                                                    "pitch": "30",
-                                                    "legroom": "n/a",
-                                                    "type": null
-                                                },
-                                                "power": {
-                                                    "available": true
-                                                }
-                                            },
-                                            "marketing_name": "Economy",
-                                            "name": "economy"
-                                        },
-                                        "fare_basis_code": "Y20LGTN2",
-                                        "cabin_class": "economy"
-                                    }
-                                ],
-                                "distance": "3974.2717774447433",
-                                "media": [],
-                                "duration": "PT5H52M",
-                                "destination": {
-                                    "iata_country_code": "US",
-                                    "iata_city_code": "LAX",
-                                    "city_name": "Los Angeles",
-                                    "icao_code": "KLAX",
-                                    "iata_code": "LAX",
-                                    "latitude": 33.942045,
-                                    "longitude": -118.408263,
-                                    "city": {
-                                        "iata_country_code": "US",
-                                        "iata_city_code": "LAX",
-                                        "city_name": null,
-                                        "icao_code": null,
-                                        "iata_code": "LAX",
-                                        "latitude": null,
-                                        "longitude": null,
-                                        "time_zone": null,
-                                        "type": "city",
-                                        "name": "Los Angeles",
-                                        "id": "cit_lax_us"
-                                    },
-                                    "time_zone": "America/Los_Angeles",
-                                    "type": "airport",
-                                    "name": "Los Angeles International Airport",
-                                    "id": "arp_lax_us"
-                                },
-                                "origin": {
-                                    "iata_country_code": "US",
-                                    "iata_city_code": "NYC",
-                                    "city_name": "New York",
-                                    "icao_code": "KJFK",
-                                    "iata_code": "JFK",
-                                    "latitude": 40.640556,
-                                    "longitude": -73.778519,
-                                    "city": {
-                                        "iata_country_code": "US",
-                                        "iata_city_code": "NYC",
-                                        "city_name": null,
-                                        "icao_code": null,
-                                        "iata_code": "NYC",
-                                        "latitude": null,
-                                        "longitude": null,
-                                        "time_zone": null,
-                                        "type": "city",
-                                        "name": "New York",
-                                        "id": "cit_nyc_us"
-                                    },
-                                    "time_zone": "America/New_York",
-                                    "type": "airport",
-                                    "name": "John F. Kennedy International Airport",
-                                    "id": "arp_jfk_us"
-                                },
-                                "id": "seg_0000B4DoPPvrFWTk64U4Yb"
-                            }
-                        ],
-                        "conditions": {
-                            "advance_seat_selection": null,
-                            "priority_check_in": null,
-                            "priority_boarding": null,
-                            "change_before_departure": {
-                                "penalty_currency": null,
-                                "penalty_amount": null,
-                                "allowed": false
-                            }
-                        },
-                        "duration": "PT5H52M",
-                        "destination": {
-                            "iata_country_code": "US",
-                            "iata_city_code": "LAX",
-                            "city_name": "Los Angeles",
-                            "icao_code": "KLAX",
-                            "iata_code": "LAX",
-                            "latitude": 33.942045,
-                            "longitude": -118.408263,
-                            "city": {
-                                "iata_country_code": "US",
-                                "iata_city_code": "LAX",
-                                "city_name": null,
-                                "icao_code": null,
-                                "iata_code": "LAX",
-                                "latitude": null,
-                                "longitude": null,
-                                "time_zone": null,
-                                "type": "city",
-                                "name": "Los Angeles",
-                                "id": "cit_lax_us"
-                            },
-                            "time_zone": "America/Los_Angeles",
-                            "type": "airport",
-                            "name": "Los Angeles International Airport",
-                            "id": "arp_lax_us"
-                        },
-                        "origin": {
-                            "iata_country_code": "US",
-                            "iata_city_code": "NYC",
-                            "city_name": "New York",
-                            "icao_code": "KJFK",
-                            "iata_code": "JFK",
-                            "latitude": 40.640556,
-                            "longitude": -73.778519,
-                            "city": {
-                                "iata_country_code": "US",
-                                "iata_city_code": "NYC",
-                                "city_name": null,
-                                "icao_code": null,
-                                "iata_code": "NYC",
-                                "latitude": null,
-                                "longitude": null,
-                                "time_zone": null,
-                                "type": "city",
-                                "name": "New York",
-                                "id": "cit_nyc_us"
-                            },
-                            "time_zone": "America/New_York",
-                            "type": "airport",
-                            "name": "John F. Kennedy International Airport",
-                            "id": "arp_jfk_us"
-                        },
-                        "id": "sli_0000B4DoPPvrFWTk64U4Yc"
-                    }
-                ],
-                "live_mode": false,
-                "total_amount": "224.24",
-                "created_at": "2026-03-13T17:37:32.896577Z",
-                "passengers": [
-                    {
-                        "fare_type": null,
-                        "loyalty_programme_accounts": [],
-                        "family_name": null,
-                        "given_name": null,
-                        "age": null,
-                        "type": "adult",
-                        "id": "pas_0000B4DoPPc0RKbD6VCDcA"
-                    }
-                ],
-                "conditions": {
-                    "refund_before_departure": {
-                        "penalty_currency": "GBP",
-                        "penalty_amount": "30.00",
-                        "allowed": true
-                    },
-                    "change_before_departure": {
-                        "penalty_currency": null,
-                        "penalty_amount": null,
-                        "allowed": false
-                    }
-                },
-                "updated_at": "2026-03-13T17:37:32.896577Z",
-                "expires_at": "2026-03-13T18:07:32.896579Z",
-                "partial": false,
-                "owner": {
-                    "logo_symbol_url": "https://assets.Partner.com/img/airlines/for-light-background/full-color-logo/AA.svg",
-                    "logo_lockup_url": "https://assets.Partner.com/img/airlines/for-light-background/full-color-lockup/AA.svg",
-                    "conditions_of_carriage_url": "https://www.aa.com/i18n/customer-service/support/conditions-of-carriage.jsp",
-                    "iata_code": "AA",
-                    "name": "American Airlines",
-                    "id": "arl_00009VME7DAGiJjwomhv32"
-                },
-                "id": "off_0000B4DoPPvrFWTk64U4Yd",
-                "provider_total_amount": "224.24",
-                "provider_total_currency": "USD",
-                "markup_bps": 0,
-                "markup_amount": "0.00"
-            }]
-}
+ {
+
+"success": true,
+"message": "Flight search completed successfully",
+"data": [{
+  "id": "off_123",
+  "object": "offer",
+  "total_amount": "210.00",
+  "currency": "USD",
+  "expires_at": "2026-02-23T19:25:43Z",
+  "slices": [
+    {
+      "origin": "JFK",
+      "destination": "LAX",
+      "segments": [
+        {
+          "departure_airport": "JFK",
+          "arrival_airport": "LAX",
+          "departure_time": "2026-03-22T08:00:00Z",
+          "arrival_time": "2026-03-22T11:00:00Z",
+          "airline": "AA",
+          "flight_number": "AA100"
+        }
+      ]
+    }
+  ],
+  "passengers": [
+    {
+      "type": "adult"
+    }
+  ]
+}]}
 ```
-
-## Offer Object (Summary)
-
-Each item in the `data` array represents a flight offer.
-
-| Field | Type | Description |
-|---|---|---|
-| `id` | string | Unique identifier of the offer. |
-| `object` | string | Object type. Always `offer`. |
-| `total_amount` | string | Total price of the offer. |
-| `currency` | string | ISO 4217 currency code. |
-| `expires_at` | string | Timestamp indicating when the offer expires. |
-
-[//]: # (<Card)
-
-[//]: # (    title="Retrieve Full Offer Details")
-
-[//]: # (    icon="arrow-right")
-
-[//]: # (    href="/tenant-api/offers#get-v1-air-offers-id")
-
-[//]: # (>)
-
-[//]: # (    Use the offer ID to retrieve complete itinerary, segments, and available services.)
-
-[//]: # (</Card>)
-
----
 
 ## Pagination
 
@@ -463,22 +188,6 @@ Use the `limit`, `after`, and `before` parameters to navigate between pages.
 You can restrict the maximum number of flight connections returned.
 This is useful when showing only direct flights or limiting travel complexity.
 ```
-
-# Best Practices
-<CardGroup cols={2}>
-    <Card title="Cache offer_request_id" icon="database">
-        Reuse the offer request ID to avoid unnecessary supplier searches.
-    </Card>
-    <Card title="Use pagination" icon="list">
-        Large searches may return many offers. Use pagination to improve performance.
-    </Card>
-    <Card title="Respect expiration" icon="clock">
-        Offers expire based on supplier rules. Always verify expiration before booking.
-    </Card>
-    <Card title="Fetch full offer before booking" icon="circle-check">
-        Retrieve complete offer details before creating an order.
-    </Card>
-</CardGroup>
 
 ## Retrieve an Offer
 
@@ -510,32 +219,32 @@ curl [https://sandbox.travelbase.ai/v1/air/offers/off_123](https://sandbox.trave
 # Response
 ```json
 {
-"id": "off_123",
-"object": "offer",
-"total_amount": "210.00",
-"currency": "USD",
-"expires_at": "2026-02-23T19:25:43Z",
-"slices": [
-{
-"origin": "JFK",
-"destination": "LAX",
-"segments": [
-{
-"departure_airport": "JFK",
-"arrival_airport": "LAX",
-"departure_time": "2026-03-22T08:00:00Z",
-"arrival_time": "2026-03-22T11:00:00Z",
-"airline": "AA",
-"flight_number": "AA100"
-}
-]
-}
-],
-"passengers": [
-{
-"type": "adult"
-}
-]
+  "id": "off_123",
+  "object": "offer",
+  "total_amount": "210.00",
+  "currency": "USD",
+  "expires_at": "2026-02-23T19:25:43Z",
+  "slices": [
+    {
+      "origin": "JFK",
+      "destination": "LAX",
+      "segments": [
+        {
+          "departure_airport": "JFK",
+          "arrival_airport": "LAX",
+          "departure_time": "2026-03-22T08:00:00Z",
+          "arrival_time": "2026-03-22T11:00:00Z",
+          "airline": "AA",
+          "flight_number": "AA100"
+        }
+      ]
+    }
+  ],
+  "passengers": [
+    {
+      "type": "adult"
+    }
+  ]
 }
 ```
 
@@ -574,7 +283,7 @@ GET /v1/air/search?limit=10&after=cursor
 
 ## Best Practices
 
-<CardGroup cols={2}>
+<CardGroup cols={3}>
 
     <Card title="Cache Request IDs" icon="database">
         Store the `offer_request_id` to quickly refresh results for a user session.
