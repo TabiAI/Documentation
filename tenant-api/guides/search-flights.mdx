@@ -1,60 +1,50 @@
 ---
 title: "Search Flights"
-description: "Search, retrieve, and stream flight offers using Travelbase's asynchronous offer pipeline."
+description: "Search for flights and receive live offers in a single synchronous response. Use the returned offer ID directly to create a booking."
 icon: "plane"
 ---
 
-import { Steps, Step } from "@/components/steps";
-
 <Info>
-    Flight search in Travelbase is **asynchronous by design**. Offers are generated after your search request is created — not instantly. Understanding this model is critical to building fast, reliable travel experiences.
+    Flight search in Travelbase is **synchronous**. A single `POST /v1/air/search` request returns all available offers immediately.
 </Info>
-
----
 
 ## How it works
 
-Travelbase uses a **two-phase search model**: you first create a search request to get an `offer_request_id`, then poll for offers using that ID. This decoupled pattern allows the API to fan out to multiple airline sources in parallel while your client stays responsive.
+Travelbase uses a **single‑request model**: one call returns all live offers inline. Each offer in the response carries its own `id` — pass that directly to `POST /v1/air/orders` to confirm a booking.
 
 ```mermaid
 sequenceDiagram
   autonumber
   participant Client
   participant API as Travelbase API
-  participant GDS as Airline Sources
 
   Client->>API: POST /v1/air/search
-  API-->>Client: { offer_request_id }
-  API->>GDS: Fan-out to sources (async)
-  Client->>API: GET /v1/air/offers?offer_request_id=xxx
-  GDS-->>API: Results streamed back
-  API-->>Client: offers[] (paginated)
+  API-->>Client: { offers[] } — all offers returned immediately
+  Client->>API: POST /v1/air/orders (selected offer.id)
+  API-->>Client: { order } — confirmed booking
 ```
 
 <CardGroup cols={2}>
-    <Card title="Async-first pipeline" icon="bolt-lightning">
-        Search requests are non-blocking. Offers are generated in the background across multiple airline sources simultaneously.
+    <Card title="Synchronous by design" icon="bolt-lightning">
+        One request, one response. Offers are returned inline — no polling loop, no separate offer‑fetch step required.
     </Card>
-    <Card title="Session-scoped offers" icon="clock">
-        Every `offer_request_id` is a short-lived snapshot of a search query. Offers are grouped, paginated, and cached under this ID until expiry.
+    <Card title="offer.id is your booking key" icon="key">
+        Every offer returned carries a unique `id`. Pass it directly to the orders endpoint — no intermediate lookup needed.
     </Card>
-    <Card title="Progressive retrieval" icon="arrow-down-to-line">
-        You don't need to wait for all offers. Begin rendering results as they arrive — ideal for perceived performance.
+    <Card title="Offer expiry still applies" icon="clock">
+        Each offer has an `expires_at`. Always check it before initiating a booking — expired offers cannot be booked.
     </Card>
-    <Card title="Conversion-critical UX" icon="chart-line-up">
-        Search responsiveness directly affects booking conversion. Travelbase is optimised for sub-second time-to-first-offer.
+    <Card title="Re‑search to refresh" icon="rotate-right">
+        If a user returns after an offer expires, run a new search. Never re‑present stale, cached offers.
     </Card>
 </CardGroup>
-
----
 
 ## Quickstart
 
 <Steps>
+    <Step title="Search for flights">
 
-    <Step title="Create a search request">
-
-        Send a `POST` request with your origin, destination, dates, and passenger details. The API responds immediately with an `offer_request_id`.
+        Send a `POST` request with your origin, destination, date, and passenger details. The API responds immediately with a full list of bookable offers.
 
         ```bash
         POST /v1/air/search
@@ -83,198 +73,192 @@ sequenceDiagram
         ```json
         {
             "data": {
-            "id": "orq_0000AEdFhpGJONOOGfwXTH",
-            "created_at": "2025-03-25T10:00:00Z",
-            "expires_at": "2025-03-25T10:30:00Z",
             "slices": [...],
-            "passengers": [...]
+            "passengers": [...],
+            "offers": [
+        {
+            "id": "off_0000AEdFkLPQNPPHhwYUJk",
+            "total_amount": "432.50",
+            "total_currency": "USD",
+            "expires_at": "2025-09-14T14:28:00Z",
+            "owner": {
+            "iata_code": "BA",
+            "name": "British Airways"
+        },
+            "slices": [...],
+            "passenger_identity_documents_required": false
+        }
+            ]
         }
         }
         ```
 
         <Tip>
-            Store the `offer_request_id` in session state immediately after receiving it. You will need it for every subsequent offers request.
+            The `offer.id` returned in each offer object is your booking key. Store the ID of the offer your user selects — you’ll pass it directly to the orders endpoint.
         </Tip>
 
     </Step>
 
-    <Step title="Fetch available offers">
+    <Step title="Select an offer and book">
 
-        Poll `GET /v1/air/offers` using your `offer_request_id`. Offers populate progressively — begin rendering as soon as the first page returns.
+        Once the user picks an offer, pass its `id` to `POST /v1/air/orders` with passenger details and payment. No intermediate lookup is required.
 
         ```bash
-        GET /v1/air/offers?offer_request_id=orq_0000AEdFhpGJONOOGfwXTH&limit=20
+        POST /v1/air/orders
+        Content-Type: application/json
         Authorization: Bearer <token>
         ```
 
-        **Response**
-
         ```json
         {
-            "data": [
+            "selected_offers": ["off_0000AEdFkLPQNPPHhwYUJk"],
+            "passengers": [
         {
-            "id": "off_0000AEdFkLPQNPPHhwYUJk",
-            "total_amount": "432.50",
-            "total_currency": "USD",
-            "slices": [...],
-            "owner": { "iata_code": "BA", "name": "British Airways" },
-            "expires_at": "2025-03-25T10:28:00Z"
+            "id": "pas_0001",
+            "born_on": "1990-04-22",
+            "email": "ada@example.com",
+            "family_name": "Lovelace",
+            "given_name": "Ada",
+            "gender": "f",
+            "phone_number": "+44 7700 900077",
+            "title": "ms"
         }
             ],
-            "meta": {
-            "limit": 20,
-            "after": "cursor_abc123",
-            "returned": 20
+            "payments": [
+        {
+            "type": "balance",
+            "currency": "USD",
+            "amount": "432.50"
         }
+            ]
         }
         ```
 
-        <Note>
-            An empty `data` array does **not** mean the search failed. It means offers haven't populated yet. Retry after a short delay.
-        </Note>
+        A `201 Created` response confirms the booking. The response body contains your `order.id`, booking reference, and full itinerary.
+
+        <Warning>
+            Always compare `offer.expires_at` to the current time before initiating payment. Booking an expired offer returns `422 offer_no_longer_available`.
+        </Warning>
 
     </Step>
-
-    <Step title="Paginate through results">
-
-        Use the `after` cursor from the previous response to fetch the next page.
-
-        ```bash
-        GET /v1/air/offers?offer_request_id=orq_0000AEdFhpGJONOOGfwXTH&limit=20&after=cursor_abc123
-        ```
-
-        Continue until `meta.after` is `null` or you have enough results for your UI. Avoid fetching all results in a single unbounded request.
-
-    </Step>
-
 </Steps>
 
----
+## Request reference
 
-## Key concepts
+### `POST /v1/air/search`
 
-### Offer request
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `slices` | array | ✓ | One or more route segments. Each requires `origin`, `destination`, and `departure_date`. |
+| `passengers` | array | ✓ | At least one passenger with a `type` of `adult`, `child`, or `infant_without_seat`. |
+| `cabin_class` | string | — | Preferred cabin: `economy`, `premium_economy`, `business`, or `first`. Defaults to `economy`. |
+| `max_connections` | integer | — | Maximum connections per slice. Set to `0` for direct flights only. |
 
-An **offer request** is a time-bound snapshot of a flight search query. It acts as the anchor for all offers returned by that search.
+#### Slice object
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `origin` | string | ✓ | IATA airport or city code for the departure point (e.g. `LOS`, `LHR`). |
+| `destination` | string | ✓ | IATA airport or city code for the arrival point. |
+| `departure_date` | string | ✓ | ISO 8601 date (`YYYY-MM-DD`). Covers all departures on this date. |
+
+## Offer object
+
+Every item in `data.offers[]` is a complete, bookable itinerary priced in real time.
 
 | Property | Description |
-|---|---|
-| `id` | Unique identifier — pass as `offer_request_id` when fetching offers |
-| `created_at` | Timestamp when the search was initiated |
-| `expires_at` | Offers become unavailable after this time — typically **30 minutes** |
-| `slices` | The origin/destination/date combinations searched |
-| `passengers` | Passenger types included in pricing |
-
-<Warning>
-    Once an offer request expires, **you cannot retrieve its offers**. If a user is still browsing, create a new search to refresh results before they attempt to book.
-</Warning>
-
-### Offer
-
-An **offer** represents a complete, bookable itinerary returned for a given search. Offers are airline-sourced and priced in real time.
-
-| Property | Description |
-|---|---|
-| `id` | Unique offer ID — required to create an order |
-| `total_amount` | Total price for all passengers |
-| `total_currency` | ISO 4217 currency code |
-| `expires_at` | Hard deadline for booking this specific offer |
-| `owner` | The airline responsible for fulfilment |
-
----
-
-## API reference
-
-<CardGroup cols={2}>
-    <Card title="POST /v1/air/search" icon="magnifying-glass" href="/api-reference/air/create-search">
-        Create a new offer request. Returns an `offer_request_id` immediately.
-    </Card>
-    <Card title="GET /v1/air/offers" icon="list" href="/api-reference/air/list-offers">
-        Retrieve paginated offers for an existing offer request.
-    </Card>
-    <Card title="GET /v1/air/offers/:id" icon="circle-info" href="/api-reference/air/get-offer">
-        Fetch full details and fare conditions for a single offer.
-    </Card>
-    <Card title="POST /v1/air/orders" icon="bag-shopping" href="/api-reference/air/create-order">
-        Convert an offer into a confirmed booking.
-    </Card>
-</CardGroup>
-
----
+|----------|-------------|
+| `id` | **Your booking key.** Pass this as `selected_offers[0]` when creating an order. |
+| `total_amount` | Total price for all passengers as a decimal string. |
+| `total_currency` | ISO 4217 currency code (e.g. `USD`, `NGN`, `GBP`). Always display alongside `total_amount`. |
+| `expires_at` | ISO 8601 datetime after which this offer can no longer be booked. |
+| `owner` | Airline responsible for fulfilling the itinerary (`iata_code`, `name`). |
+| `slices` | Array of slice objects — segments, stops, cabin, baggage allowance. |
+| `passenger_identity_documents_required` | Whether passport/ID numbers are required at the time of booking. |
 
 ## Best practices
 
 <CardGroup cols={3}>
     <Card title="Debounce search input" icon="hand">
-        Avoid firing a new search request on every keystroke. Debounce by **400–600ms** or trigger only on form submission.
-    </Card>
-    <Card title="Paginate, never bulk-fetch" icon="layer-group">
-        Always use `limit` and `after` cursors. Fetching all offers in one call is slow, expensive, and unnecessary.
-    </Card>
-    <Card title="Cache the offer request ID" icon="database">
-        Persist `offer_request_id` in session or component state for the duration of the search flow — don't recreate searches unnecessarily.
-    </Card>
-    <Card title="Handle empty responses gracefully" icon="circle-exclamation">
-        An empty `data` array is a valid transient state. Show a loading indicator and retry — don't surface an error to the user.
-    </Card>
-    <Card title="Show progressive results" icon="signal">
-        Render each page of offers as it arrives. Don't wait for all pages before displaying results to the user.
+        Avoid firing on every keystroke. Trigger search on form submission or after **400–600 ms** of inactivity.
     </Card>
     <Card title="Respect offer expiry" icon="timer">
-        Check `expires_at` before presenting an offer for booking. Refresh the search if expiry is imminent.
+        Check `offer.expires_at` before showing the booking CTA. Prompt a re‑search if expiry is imminent.
+    </Card>
+    <Card title="Never cache stale offers" icon="database">
+        Don’t persist offers across sessions or page reloads. Run a fresh search each time the user begins a booking flow.
+    </Card>
+    <Card title="Sort client‑side" icon="arrow-up-wide-short">
+        Offers are returned unordered. Sort by `total_amount`, duration, or stops in your UI — no extra API call needed.
+    </Card>
+    <Card title="Display currency correctly" icon="money-bill">
+        Always render `total_currency` alongside `total_amount`. Offers from different airlines may be in different currencies.
+    </Card>
+    <Card title="Handle 422 gracefully" icon="circle-exclamation">
+        If booking returns `offer_no_longer_available`, redirect the user to a fresh search rather than surfacing a raw error.
     </Card>
 </CardGroup>
-
----
 
 ## Common mistakes
 
 <AccordionGroup>
+    <Accordion title="Looking for an offer_request_id in the response" icon="triangle-exclamation">
+        Travelbase’s search endpoint is synchronous. There is no `offer_request_id` to store or poll with. Offers are returned directly in `data.offers[]` on the initial response.
 
-    <Accordion title="Expecting synchronous, instant results" icon="triangle-exclamation">
-        The search endpoint returns an `offer_request_id` — **not offers**. Offers are generated asynchronously. If your integration blocks on the first call waiting for offers, it will always time out.
-
-        **Fix:** Separate the search creation step from the offer retrieval step. Poll `GET /v1/air/offers` with a short backoff until results appear.
+        **Fix:** Read offers from `response.data.offers`. Use each `offer.id` to proceed to booking.
     </Accordion>
 
-    <Accordion title="Treating an empty response as an error" icon="triangle-exclamation">
-        Early polling attempts often return `"data": []`. This is expected — sources are still streaming results back.
+    <Accordion title="Polling for offers after the search response" icon="triangle-exclamation">
+        There is no asynchronous pipeline. You do not need to call `GET /v1/air/offers` separately. All offers are included synchronously in the search response body.
 
-        **Fix:** Retry with exponential backoff (e.g. 500ms → 1s → 2s) up to a maximum of ~10 seconds before surfacing a 'no results' state.
-    </Accordion>
-
-    <Accordion title="Fetching all offers in a single request" icon="triangle-exclamation">
-        Omitting `limit` or requesting a very large page causes high latency and degraded performance for all users.
-
-        **Fix:** Always set `limit` (recommended: `20–50`). Use the `after` cursor to load more on demand or in the background.
-    </Accordion>
-
-    <Accordion title="Not storing the offer request ID" icon="triangle-exclamation">
-        Re-creating a search request on every poll fires redundant API calls, consumes rate limit quota, and introduces unnecessary latency.
-
-        **Fix:** Create the search once per user query. Store `offer_request_id` and reuse it for all subsequent `GET /v1/air/offers` calls until expiry.
+        **Fix:** Remove any polling logic. A single `POST /v1/air/search` is the complete search flow.
     </Accordion>
 
     <Accordion title="Presenting expired offers for booking" icon="triangle-exclamation">
-        Attempting to book an offer after its `expires_at` will return a `422 Unprocessable Entity`. This creates a frustrating dead-end for users.
+        Attempting to create an order with an expired offer returns `422 offer_no_longer_available`, creating a dead‑end mid‑checkout.
 
-        **Fix:** Compare `offer.expires_at` against the current time before initiating the booking flow. If expired, prompt the user to refresh the search.
+        **Fix:** Compare `offer.expires_at` to `Date.now()` before showing the booking confirmation step. If expired, redirect to a new search.
     </Accordion>
 
-</AccordionGroup>
+    <Accordion title="Re‑running a search on every render" icon="triangle-exclamation">
+        Firing a new search on every component mount or route change wastes rate‑limit quota and introduces avoidable latency.
 
----
+        **Fix:** Cache the search result in component or session state. Only re‑search when the user explicitly changes their query.
+    </Accordion>
+
+    <Accordion title="Ignoring total_currency" icon="triangle-exclamation">
+        Displaying a price without its currency code is a compliance risk. Offers from different sources may return different currencies.
+
+        **Fix:** Always render `total_currency` with `total_amount`. Format using `Intl.NumberFormat` with the user’s locale and the appropriate currency code.
+    </Accordion>
+</AccordionGroup>
 
 ## Error reference
 
-| HTTP Status | Code | Meaning |
-|---|---|---|
-| `400` | `invalid_search_params` | Malformed request body — check required fields |
-| `404` | `offer_request_not_found` | The `offer_request_id` doesn't exist or belongs to another account |
-| `410` | `offer_request_expired` | The offer request has passed its `expires_at` — create a new search |
-| `422` | `offer_no_longer_available` | The specific offer expired or sold out before booking |
-| `429` | `rate_limit_exceeded` | Too many requests — implement exponential backoff |
----
+| HTTP Status | Code                         | Meaning |
+|-------------|------------------------------|---------|
+| `400`       | `invalid_search_params`      | Malformed request — check required fields, date formats, and IATA codes. |
+| `401`       | `unauthorized`               | Missing or invalid `Authorization` header. |
+| `422`       | `offer_no_longer_available`  | The selected offer expired or sold out. Prompt the user to re‑search. |
+| `429`       | `rate_limit_exceeded`        | Too many requests — implement exponential backoff starting at 500 ms. |
+| `500`       | `internal_server_error`      | Upstream airline source error. Retry once, then contact support with the `x-request-id` header value. |
+
+## API reference
+
+<CardGroup cols={2}>
+    <Card title="POST /v1/air/search" icon="magnifying-glass" href="/api-reference/air/create-search">
+        Search for available flights. Returns a complete `offers[]` array synchronously.
+    </Card>
+    <Card title="GET /v1/air/offers/:id" icon="circle-info" href="/api-reference/air/get-offer">
+        Fetch full fare conditions, baggage rules, and seat availability for a single offer.
+    </Card>
+    <Card title="POST /v1/air/orders" icon="bag-shopping" href="/api-reference/air/create-order">
+        Convert an offer into a confirmed booking using the `offer.id` from search.
+    </Card>
+    <Card title="Manage Orders" icon="clipboard-list" href="/guides/manage-orders">
+        Handle post‑booking actions — cancellations, changes, and seat selection.
+    </Card>
+</CardGroup>
 
 ## Next steps
 
@@ -283,9 +267,9 @@ An **offer** represents a complete, bookable itinerary returned for a given sear
         Convert an offer into a confirmed booking with passenger details and payment.
     </Card>
     <Card title="Manage orders" icon="clipboard-list" href="/guides/manage-orders">
-        Handle post-booking actions — cancellations, changes, and seat selection.
+        Handle post‑booking flows — cancellations, amendments, and ancillary services.
     </Card>
     <Card title="Webhooks" icon="bell" href="/guides/webhooks">
-        Subscribe to real-time events for order status, schedule changes, and more.
+        Subscribe to real‑time events for order status, schedule changes, and more.
     </Card>
 </CardGroup>

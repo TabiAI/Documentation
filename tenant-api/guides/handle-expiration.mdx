@@ -1,16 +1,155 @@
 ---
-title: Handle expiration
-description: Safely handle expiring offers in your integration
+title: Handle Expiration
+description: Safely handle expiring flight offers in your integration to avoid failed bookings and poor user experience.
 icon: hourglass
 ---
 
 ## Overview
 
-Flight offers are **time-sensitive** and may expire quickly.
-
-Each offer contains:
+Flight offers are **time-sensitive** and can expire within minutes of being fetched. Every offer includes an `expires_at` timestamp that defines the exact window during which the offer is valid for booking.
 
 ```json
 {
   "expires_at": "2026-04-01T12:00:00Z"
 }
+```
+
+<Note>
+    Always treat `expires_at` as the source of truth. Do not assume an offer is still valid based on when it was fetched or how recently you searched.
+</Note>
+
+---
+
+## Why Expiration Matters
+
+Flight pricing and availability are highly dynamic. An offer can become invalid at any moment due to:
+
+- **Fare changes** — airline pricing rules updated in real time
+- **Seat availability** — another passenger books the last seat
+- **Airline inventory changes** — capacity adjustments on the route
+
+Attempting to book an expired offer will result in a **failed order request**. Handling expiration gracefully protects both your users and your integration.
+
+---
+
+## Recommended Flow
+
+Follow this four-step pattern to safely manage offer expiration end-to-end.
+
+### 1. Store the Expiration Timestamp
+
+Persist `expires_at` alongside every offer you retrieve so it is available at booking time.
+
+```typescript
+type Offer = {
+  id: string;
+  expires_at: string; // ISO 8601 UTC timestamp
+};
+```
+
+### 2. Validate Before Booking
+
+Before calling `/v1/air/orders`, check whether the offer is still within its validity window.
+
+```typescript
+function isOfferValid(expiresAt: string): boolean {
+  return new Date(expiresAt).getTime() > Date.now();
+}
+```
+
+### 3. Block Expired Offers at Both Layers
+
+Enforce expiration checks at the **frontend** and the **backend** — never rely on just one.
+
+<CodeGroup>
+
+    ```typescript Frontend
+    // Disable the booking button when the offer is expired
+    const canBook = isOfferValid(offer.expires_at);
+
+    <button disabled={!canBook}>
+        Book Now
+    </button>
+    ```
+
+    ```typescript Backend
+    // Re-validate server-side before creating the order
+    if (!isOfferValid(offer.expires_at)) {
+    throw new Error("Offer has expired. Please search again.");
+}
+
+    await createOrder(offer.id);
+    ```
+
+</CodeGroup>
+
+### 4. Refresh Offers When Needed
+
+If an offer has expired, do not attempt to reuse the offer ID. Fetch a fresh set of results instead.
+
+1. Re-run the search via **`/v1/air/search`** to get new offers based on the user's original criteria
+2. Present the refreshed options to the user
+
+<Tip>
+    Never attempt to reuse an expired offer ID — it will always fail. Always fetch fresh offers from the search endpoint.
+</Tip>
+
+---
+
+## Handling Edge Cases
+
+### Race Condition — Offer Expires During Booking
+
+Even if you validate the offer immediately before booking, it can expire in the gap between:
+
+- User clicking **Book Now** → your API request reaching our servers
+- Network latency → order processing delay
+
+Handle this gracefully by catching the `OFFER_EXPIRED` error code and prompting the user to refresh:
+
+```typescript
+try {
+  await createOrder(offer.id);
+} catch (error) {
+  if (error.errorCode === "<ExpiredOfferErrorCode>") {
+    // Notify the user and trigger a new search
+    showAlert("This offer has expired. Please search again for available flights.");
+    redirectToSearch();
+  }
+}
+```
+
+### Near-Expiry UX
+
+For offers approaching expiration, proactively improve the user experience:
+
+- **Show a countdown timer** — surface how much time remains
+- **Highlight urgency** — use visual cues (e.g. amber/red indicators) when under 2 minutes
+- **Apply a safety buffer** — disable booking when fewer than 30 seconds remain to avoid race conditions
+
+```typescript
+const SAFETY_BUFFER_MS = 30_000; // 30 seconds
+
+function isOfferSafeToBook(expiresAt: string): boolean {
+  return new Date(expiresAt).getTime() - Date.now() > SAFETY_BUFFER_MS;
+}
+```
+
+---
+
+## Best Practices
+
+<CardGroup cols={2}>
+    <Card title="Validate Twice" icon="shield-check">
+        Always check expiration both client-side (before showing the button) and server-side (before creating the order). Never rely on a single layer.
+    </Card>
+    <Card title="Use a Safety Buffer" icon="clock">
+        Treat offers as expired slightly before `expires_at` — a 30-second buffer reduces the risk of race conditions during high-latency requests.
+    </Card>
+    <Card title="Recover Gracefully" icon="rotate-cw">
+        When an offer expires mid-flow, catch the error and guide users back to search results. Avoid dead ends or cryptic error messages.
+    </Card>
+    <Card title="Never Cache Stale Offers" icon="database">
+        Do not cache or store offers beyond their expiration window. Always surface fresh results from the search endpoint.
+    </Card>
+</CardGroup>
