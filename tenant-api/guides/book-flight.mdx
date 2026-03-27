@@ -247,38 +247,6 @@ sequenceDiagram
     </Step>
 </Steps>
 
----
-
-## Order lifecycle
-
-An order moves through a defined set of states. Your application must handle all of them gracefully.
-
-```mermaid
-stateDiagram-v2
-direction LR
-[*] --> pending: POST /orders
-pending --> in_progress: POST /orders/:id/ticket
-in_progress --> confirmed: Airline confirms
-in_progress --> failed: Airline rejects
-confirmed --> cancelled: POST /orders/:id/cancel
-failed --> [*]: Show retry
-cancelled --> [*]: Refund issued
-```
-
-| Status | Description | Next action |
-|---|---|---|
-| `pending` | Order created, awaiting ticketing call | Call `/actions/ticket` |
-| `in_progress` | Ticketing submitted to airline | Wait for webhook |
-| `confirmed` | Ticket issued, booking complete | Show confirmation + emit ticket |
-| `failed` | Airline rejected — no charge applied | Offer retry or alternative |
-| `cancelled` | Booking voided post-confirmation | Process refund, notify user |
-
-<Warning>
-    Do not poll the order status endpoint as a substitute for webhooks. Polling introduces latency, consumes rate limit quota, and creates race conditions. If you need a fallback, poll **once** after 30 seconds only if no webhook has arrived.
-</Warning>
-
----
-
 ## Idempotency in depth
 
 Idempotency is your primary defence against duplicate bookings and double charges during network failures or retries.
@@ -389,7 +357,6 @@ body: JSON.stringify(orderPayload),
     </Accordion>
 
 </AccordionGroup>
-
 ---
 
 ## Passenger data requirements
@@ -448,23 +415,6 @@ Incomplete or incorrect passenger data is the leading cause of airline rejection
 | Ignoring `order.failed` | User thinks booking succeeded; support tickets follow | Handle failure state explicitly with retry UX |
 | Not validating `expires_at` | Order creation returns `422`, wasting a round trip and frustrating the user | Check expiry with a 60s buffer before submitting |
 | Creating a new order during `in_progress` | Dual payment holds, possible duplicate ticket | Block re-submission while an order is actively processing |
-
----
-
-## Error reference
-
-| HTTP Status | Code | Description |
-|---|---|---|
-| `400` | `invalid_passenger_data` | Missing or malformed passenger field — check required fields |
-| `402` | `insufficient_balance` | Wallet balance below `total_amount` |
-| `404` | `offer_not_found` | Offer ID doesn't exist or belongs to another account |
-| `409` | `idempotency_conflict` | A request with this key is already in flight — back off and retry |
-| `422` | `offer_no_longer_available` | Offer expired or seat sold out — re-search required |
-| `422` | `invalid_identity_document` | Passport data malformed or expired |
-| `429` | `rate_limit_exceeded` | Too many requests — implement exponential backoff |
-| `500` | `internal_error` | Travelbase-side error — safe to retry with same idempotency key |
-
----
 
 ## Next steps
 
