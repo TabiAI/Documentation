@@ -281,23 +281,18 @@ Travelbase returns standard HTTP status codes.
 
 ```json
 {
-  "error": {
-    "type": "insufficient_balance",
-    "message": "Wallet balance is insufficient for ticketing."
-  }
-}
+        "success": false,
+        "statusCode": 400,
+        "errorCode": "TB_AUTH_101",
+        "message": "Insufficient balance",
+        "fault": "client",
+        "retryable": true,
+        "suggestedAction": "Load wallet and try again",
+        "reason": "wallet balance",
+        "environment": "sandbox",
+        "apiVersion": "1.0.0"
+    }
 ```
-## Common error types
-
-The following errors may occur when creating, modifying, or ticketing an order.
-
-| Error | Description |
-|---|---|
-| `insufficient_balance` | Wallet balance is too low to complete ticketing |
-| `invalid_offer` | Offer has expired, is invalid, or cannot be used |
-| `order_not_found` | Order does not exist or cannot be located |
-| `order_not_pending` | Order cannot be modified because it is no longer in the `PENDING` state |
-| `idempotency_conflict` | Duplicate idempotency key was used for a different request |
 
 <Note>
     Order operations are state-dependent. Always verify the order <code>status</code> and ensure sufficient wallet
