@@ -205,7 +205,7 @@ footer::after {
 
     /* Keeps the logo BEHIND the text and non-interactive */
     pointer-events: none;
-    z-index: -4;
+    z-index: -10;
 
     /* The "Fade-In" from the bottom */
     mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 20%, transparent 80%);
