@@ -1,0 +1,88 @@
+/* ===================================================== */
+/* TRAVELBASE — PREMIUM BACKGROUND SYSTEM (ENTERPRISE) */
+/* ===================================================== */
+
+/* ============================= */
+/* WATERMARK (LIGHT MODE) */
+/* ============================= */
+html::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+
+    background-image: url('/images/Travelbase_logo.png');
+    background-repeat: no-repeat;
+
+    /* Premium positioning (not dead center) */
+    background-position: 55% 55%;
+    background-size: 55%;
+
+    /* Direction + scale */
+    transform: rotate(-25deg) scale(1.15);
+
+    /* Subtle presence */
+    opacity: 0.04;
+
+    /* Polish */
+    filter: blur(0.3px);
+
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ============================= */
+/* GRADIENT LAYER (LIGHT MODE) */
+/* ============================= */
+html::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+
+    background: radial-gradient(
+            circle at 15% 20%,
+            rgba(103, 93, 255, 0.10),
+            transparent 45%
+    ),
+    radial-gradient(
+            circle at 85% 80%,
+            rgba(103, 93, 255, 0.07),
+            transparent 55%
+    );
+
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ============================= */
+/* 🌙 DARK MODE */
+/* ============================= */
+.dark html::before {
+    background-image: url('/images/Travelbase_logo_white.png');
+
+    opacity: 0.055;
+
+    filter: brightness(1.25) contrast(1.1) blur(0.3px);
+}
+
+.dark html::after {
+    background: radial-gradient(
+            circle at 15% 20%,
+            rgba(103, 93, 255, 0.16),
+            transparent 45%
+    ),
+    radial-gradient(
+            circle at 85% 80%,
+            rgba(103, 93, 255, 0.12),
+            transparent 55%
+    );
+}
+
+/* ============================= */
+/* RESPONSIVE (MOBILE POLISH) */
+/* ============================= */
+@media (max-width: 768px) {
+    html::before {
+        background-size: 75%;
+        opacity: 0.03;
+    }
+}

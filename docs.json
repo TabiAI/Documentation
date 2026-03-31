@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Travelbase Business API",
+  "name": "Travelbase Documentation",
   "logo": {
     "light": "/images/Travelbase_logo.png",
     "dark": "/images/Travelbase_logo_white.png"
@@ -11,6 +11,9 @@
     "light": "#675DFF",
     "dark": "#675DFF"
   },
+  "styles": [
+    "./styles/custom.css"
+  ],
   "navigation": {
     "tabs": [
       {
