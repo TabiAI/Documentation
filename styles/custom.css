@@ -334,3 +334,22 @@ div[class*="PoweredBy"] {
     display: none !important;
     visibility: hidden !important;
 }
+
+.tb-footer {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+
+    color: rgba(var(--tb-brand), 0.5);
+    z-index: -4;
+    pointer-events: none;
+}
+
+.dark .tb-footer {
+    color: rgba(255, 255, 255, 0.4);
+}
