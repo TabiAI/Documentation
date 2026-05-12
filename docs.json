@@ -37,6 +37,7 @@
               "tenant-api/concepts/errors",
               "tenant-api/concepts/rate-limits",
               "tenant-api/concepts/idempotency",
+
               "tenant-api/concepts/pagination",
               "tenant-api/concepts/versioning",
               "tenant-api/concepts/offer-lifecycle",

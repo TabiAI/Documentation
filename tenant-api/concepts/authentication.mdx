@@ -1,0 +1,34 @@
+---
+title: "Authentication"
+description: "How to authenticate your requests to the Travelbase API."
+---
+All API requests must be authenticated using either an API key or a bearer token.
+
+<Tabs>
+    <Tab title="API Key (Recommended)">
+        Use API keys for secure, server-to-server integrations.
+
+        ```http
+        x-api-key: tb_live_xxxxxxxxxxxxxxxxx
+        ```
+        <Tip>
+            API keys provide stable, long-lived authentication and are ideal for backend systems.
+        </Tip>
+    </Tab>
+    <Tab title="Bearer Token">
+        Use bearer tokens when acting on behalf of a signed-in dashboard user.
+
+        ```http
+        Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        ```
+    </Tab>
+</Tabs>
+
+<Card title="Security Best Practices" icon="shield-check">
+    **Managing API Keys:** Keys can be created and rotated in the dashboard under **Settings → API Keys**.
+
+    <Warning>
+        Never expose API keys in client-side applications (web, mobile, or public code). Always store keys securely in
+        backend systems or secret managers.
+    </Warning>
+</Card>

@@ -1,0 +1,14 @@
+---
+title: "Idempotency"
+description: "Idempotency prevents duplicate resource creation caused by retries or network interruptions. Include an idempotency key when performing write operations (**POST** or **PUT**)."
+---
+
+```http
+Idempotency-Key: <unique_uuid>
+
+```
+
+<Note>
+    Idempotency Guarantee: If a request with the same key is received multiple times, the API will return the original
+    response instead of creating duplicate resources. Use UUID v4 for these keys.
+</Note>

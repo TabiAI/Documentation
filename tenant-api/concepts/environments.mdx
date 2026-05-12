@@ -1,0 +1,46 @@
+---
+title: "Environments"
+description: "Travelbase provides isolated environments for development and production operations."
+---
+
+Travelbase operates two separate environments for testing and production usage.
+
+<CardGroup cols={2}>
+    <Card title="Sandbox" icon="flask">
+        Used for development and testing. No real bookings or financial transactions are processed.
+    </Card>
+
+    <Card title="Live" icon="rocket">
+        Used for real customer bookings and production traffic.
+    </Card>
+</CardGroup>
+
+Each environment is fully isolated and has its own API keys, wallets, and data.
+
+## Sandbox
+
+```bash
+Base URL: https://sandbox.travelbase.ai/v1
+API Key Prefix: tb_test_
+```
+<Warning> Sandbox requests never create real bookings or move real funds. </Warning>
+
+## Live
+
+```bash
+Base URL: <check your dashboard for the correct URL>
+API Key Prefix: tb_live_
+```
+<Warning> Requests made in the Live environment are real and may incur charges or carrier penalties.</Warning>
+
+---
+
+## Comparison
+
+| Feature | Sandbox | Live |
+| --- | --- | --- |
+| Real Bookings | No | Yes |
+| Financial Settlement | Virtual | Real |
+| API Key Prefix | `tb_test_` | `tb_live_` |
+| Intended Usage | Development | Production |
+---

@@ -1,0 +1,20 @@
+---
+title: "Rate Limits"
+description: "The API enforces rate limits to ensure system stability and fair usage across all tenants."
+---
+
+
+
+<Card title="Default Rate Limit" icon="gauge">
+    **120 requests per minute** per API key.
+</Card>
+
+If a request exceeds the limit, the API returns a `429 Too Many Requests` status code.
+
+<Tip>
+    Implement retry logic using **exponential backoff** to safely handle rate limit responses and minimize service
+    disruptions.
+</Tip>
+
+---
+

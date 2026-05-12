@@ -1,0 +1,134 @@
+---
+title: "Request & Response"
+description: "Learn about the structure of API requests and responses, including how to format your requests and interpret the data returned by the Travelbase API."
+---
+
+## Overview
+
+<CardGroup cols={2}>
+    <Card title="Request Structure" icon="paper-plane" color="#6366f1">
+        Every request must target the correct base URL and carry a valid API key
+        in the `Authorization` header.
+    </Card>
+    <Card title="Response Structure" icon="circle-check" color="#22c55e">
+        All responses are JSON and follow a consistent envelope with a `success`
+        flag, a `message`, and a `data` object.
+    </Card>
+</CardGroup>
+
+---
+
+## Request Structure
+
+All API requests must be made to the correct base URL for your environment
+(**Sandbox** or **Live**) and include the appropriate API key in the
+`Authorization` header.
+
+<Tip>
+    Use the **Sandbox** environment (`https://sandbox.travelbase.ai`) for all
+    development and testing. Switch to the Live base URL only when you are ready
+    to go to production.
+</Tip>
+
+### Authentication
+
+<Warning>
+    Never expose your API key in client-side code, public repositories, or
+    logs. Treat it like a password — store it in environment variables or a
+    secrets manager.
+</Warning>
+
+Pass your key as a Bearer token in every request:
+
+```http
+Authorization: Bearer tb_test_xxxxxxxxxxxxxxxxx
+```
+
+### Example Request
+
+```bash
+curl -X POST "https://sandbox.travelbase.ai/v1/bookings" \
+  -H "Authorization: Bearer tb_test_xxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer": {
+      "name": "John Doe",
+      "email": "john@example.com"
+    },
+    "itinerary": {
+      "origin": "JFK",
+      "destination": "LAX",
+      "departureDate": "2024-12-01"
+    }
+  }'
+```
+
+<Note>
+    Always set `Content-Type: application/json` when sending a request body.
+    Omitting this header may result in a `400 Bad Request` error.
+</Note>
+
+---
+
+## Response Structure
+
+All API responses are returned in **JSON** format and follow a consistent
+envelope structure.
+
+<CardGroup cols={3}>
+    <Card title="success" icon="toggle-on">
+        Boolean flag indicating whether the operation completed without errors.
+    </Card>
+    <Card title="message" icon="message">
+        A human-readable summary of the outcome, useful for logging and
+        debugging.
+    </Card>
+    <Card title="data" icon="database">
+        The payload of the response. Its shape varies per endpoint — always
+        check the endpoint reference for the exact schema.
+    </Card>
+</CardGroup>
+
+### Backward & Forward Compatibility
+
+<Info>
+    The `data` object is **backward and forward compatible**. New fields may be
+    added in future API versions without a breaking change. Always guard against
+    missing fields in your application logic before accessing them.
+</Info>
+
+### Pagination & Metadata
+
+For list endpoints, the `data` object may be nested alongside additional
+metadata such as pagination cursors or related resource links. Refer to the
+specific endpoint documentation for full details.
+
+### Example Response
+
+```json
+{
+  "success": true,
+  "message": "Booking created successfully",
+  "data": {
+    "bookingId": "bk_1234567890",
+    "customer": {
+      "name": "John Doe",
+      "email": "john@example.com"
+    },
+    "itinerary": {
+      "origin": "JFK",
+      "destination": "LAX",
+      "departureDate": "2024-12-01"
+    },
+    "createdAt": "2024-11-01T12:00:00Z"
+  }
+}
+```
+
+## Quick-Reference Checklist
+
+<Check>Use the correct base URL for your environment (Sandbox vs. Live).</Check>
+<Check>Include `Authorization: Bearer <your-key>` in every request.</Check>
+<Check>Set `Content-Type: application/json` when sending a body.</Check>
+<Check>Read `success` and `errorCode` — not just the HTTP status code.</Check>
+<Check>Guard against missing fields in `data` for forward compatibility.</Check>
