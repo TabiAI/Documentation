@@ -1,0 +1,280 @@
+---
+title: "Multi-Tenancy"
+description: "Build platforms on top of Travelbase by creating and managing isolated tenants — each with their own data, API keys, and configuration — from a single owner account."
+---
+
+## Overview
+
+Multi-tenancy lets you run a **platform business on top of Travelbase**. As
+a platform owner, you can programmatically create tenant accounts, issue
+them scoped API keys, and keep their data fully isolated — all without any
+manual setup in the dashboard.
+
+<CardGroup cols={3}>
+    <Card title="Full Isolation" icon="shield" color="#6366f1">
+        Every tenant's bookings, customers, and configuration are siloed. No
+        tenant can ever read or write another's data.
+    </Card>
+    <Card title="Scoped API Keys" icon="key" color="#f59e0b">
+        Each tenant gets their own API key. Revoking one tenant's key has zero
+        impact on any other tenant.
+    </Card>
+    <Card title="Owner Controls" icon="crown" color="#22c55e">
+        Your owner account can create, suspend, and delete tenants and act on
+        their behalf — all via API.
+    </Card>
+</CardGroup>
+
+---
+
+## How It Works
+
+<Steps>
+    <Step title="Create a tenant">
+        Use your owner API key to call `POST /v1/tenants`. Travelbase provisions
+        an isolated environment and returns a `tenantId`.
+    </Step>
+    <Step title="Issue a tenant API key">
+        Call `POST /v1/tenants/:id/keys` to generate a scoped API key for the
+        tenant. Hand this key to your customer — it is the only credential they
+        need.
+    </Step>
+    <Step title="Tenant makes requests">
+        Your customer uses their scoped key exactly like any Travelbase API key.
+        All data created under that key belongs exclusively to their tenant.
+    </Step>
+    <Step title="Manage from the owner account">
+        At any time, use your owner key to inspect, suspend, or tear down a
+        tenant. You can also act on behalf of a tenant using the
+        `Travelbase-Tenant` header.
+    </Step>
+</Steps>
+
+---
+
+## Account Hierarchy
+
+```
+Owner Account  (tb_live_owner_xxxx)
+├── Tenant A   (tb_live_tenant_aaaa)   → Acme Corp
+├── Tenant B   (tb_live_tenant_bbbb)   → Globex Travel
+└── Tenant C   (tb_live_tenant_cccc)   → Initech Trips
+```
+
+<Note>
+    Tenants are flat — there is no nesting. A tenant cannot create sub-tenants.
+    Only the owner account has tenant management privileges.
+</Note>
+
+---
+
+## Tenant Management
+
+### Create a Tenant
+
+```bash
+curl -X POST "https://api.travelbase.ai/v1/tenants" \
+  -H "Authorization: Bearer tb_live_owner_xxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Acme Corp",
+    "email": "admin@acme.com",
+    "metadata": {
+      "plan": "pro",
+      "externalId": "cus_acme_001"
+    }
+  }'
+```
+
+```json
+{
+  "success": true,
+  "message": "Tenant created successfully",
+  "data": {
+    "tenantId": "ten_acme001",
+    "name": "Acme Corp",
+    "email": "admin@acme.com",
+    "status": "active",
+    "createdAt": "2024-11-01T12:00:00Z",
+    "metadata": {
+      "plan": "pro",
+      "externalId": "cus_acme_001"
+    }
+  }
+}
+```
+
+<Tip>
+    Use the `metadata` field to store your own internal identifiers (like a
+    customer ID from your CRM or billing system). It is returned on every tenant
+    object, making cross-system lookups straightforward.
+</Tip>
+
+### Issue a Tenant API Key
+
+```bash
+curl -X POST "https://api.travelbase.ai/v1/tenants/ten_acme001/keys" \
+  -H "Authorization: Bearer tb_live_owner_xxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "label": "Production Key"
+  }'
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "keyId": "key_abc123",
+    "label": "Production Key",
+    "apiKey": "tb_live_tenant_aaaa_xxxxxxxxxxxxxx",
+    "createdAt": "2024-11-01T12:05:00Z"
+  }
+}
+```
+
+<Warning>
+    The full `apiKey` value is only returned **once** at creation time. Store
+    it securely immediately — it cannot be retrieved again. If it is lost,
+    revoke the key and issue a new one.
+</Warning>
+
+### Suspend & Reactivate a Tenant
+
+```bash
+# Suspend
+curl -X PATCH "https://api.travelbase.ai/v1/tenants/ten_acme001" \
+  -H "Authorization: Bearer tb_live_owner_xxxx" \
+  -d '{ "status": "suspended" }'
+
+# Reactivate
+curl -X PATCH "https://api.travelbase.ai/v1/tenants/ten_acme001" \
+  -H "Authorization: Bearer tb_live_owner_xxxx" \
+  -d '{ "status": "active" }'
+```
+
+<Note>
+    Suspending a tenant immediately rejects all API requests made with their
+    keys (`403 Forbidden`). Their data is preserved in full and becomes
+    accessible again the moment you reactivate them.
+</Note>
+
+---
+
+## Acting on Behalf of a Tenant
+
+As the owner, you can make API calls scoped to any of your tenants without
+using their key. Pass the `Travelbase-Tenant` header with the `tenantId`.
+
+```bash
+curl -X GET "https://api.travelbase.ai/v1/bookings" \
+  -H "Authorization: Bearer tb_live_owner_xxxx" \
+  -H "Travelbase-Tenant: ten_acme001"
+```
+
+This returns only Acme Corp's bookings, exactly as if the request had been
+made with their own API key.
+
+<CardGroup cols={2}>
+    <Card title="When to use this" icon="circle-check" color="#22c55e">
+        Backfilling data during onboarding, debugging a tenant's integration,
+        running admin scripts, or building an internal support dashboard.
+    </Card>
+    <Card title="When not to use this" icon="circle-xmark" color="#ef4444">
+        Never pass your owner key to your customers' applications. The owner key
+        has access to all tenants — treat it as your most sensitive credential.
+    </Card>
+</CardGroup>
+
+---
+
+## Data Isolation
+
+<CardGroup cols={2}>
+    <Card title="Strict boundaries" icon="lock" color="#6366f1">
+        Every database query is scoped to the tenant at the infrastructure level.
+        It is architecturally impossible for a tenant key to return another
+        tenant's records.
+    </Card>
+    <Card title="Deletion is permanent" icon="trash" color="#ef4444">
+        Deleting a tenant permanently removes all of their data — bookings,
+        customers, itineraries, and keys. This action cannot be undone.
+    </Card>
+</CardGroup>
+
+<Warning>
+    `DELETE /v1/tenants/:id` is **irreversible**. Build a confirmation step into
+    any internal tooling that calls this endpoint. Consider implementing a soft
+    suspension first and only hard-deleting after a cooling-off period.
+</Warning>
+
+---
+
+## Tenant Object Reference
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `tenantId` | `string` | Unique identifier for the tenant. Prefix: `ten_`. |
+| `name` | `string` | Display name for the tenant. |
+| `email` | `string` | Primary contact email for the tenant. |
+| `status` | `enum` | `active` \| `suspended` \| `deleted` |
+| `metadata` | `object` | Up to 20 key-value pairs for your own internal data. |
+| `createdAt` | `string` | ISO 8601 timestamp of when the tenant was provisioned. |
+
+---
+
+## Security Best Practices
+
+<Steps>
+    <Step title="Guard your owner key above all else">
+        Your owner key can read and write every tenant's data. Store it only in a
+        secrets manager, never in environment files committed to source control,
+        and rotate it on any suspected compromise.
+    </Step>
+    <Step title="Issue one key per tenant per environment">
+        Give each tenant a separate key for Sandbox and Live. This prevents test
+        traffic from polluting production data and makes it easy to revoke a
+        single environment without disrupting the other.
+    </Step>
+    <Step title="Revoke keys on offboarding">
+        When a tenant churns or is offboarded, call `DELETE /v1/tenants/:id/keys/:keyId`
+        before deleting the tenant. Explicit revocation ensures the key is
+        immediately invalidated even if deletion is delayed.
+    </Step>
+    <Step title="Monitor per-tenant usage">
+        Use the owner account to poll `GET /v1/tenants/:id/usage` and set up
+        alerts for anomalous request volumes — a sudden spike on one tenant can
+        indicate a runaway script or compromised key.
+    </Step>
+</Steps>
+
+---
+
+## FAQ
+
+<AccordionGroup>
+
+[//]: # (<Accordion title="How many tenants can I create?">)
+
+[//]: # (    The default limit is **500 tenants** per owner account. If your platform)
+
+[//]: # (    needs more, contact support to request a limit increase — there is no hard)
+
+[//]: # (    ceiling on the infrastructure side.)
+
+[//]: # (</Accordion>)
+    <Accordion title="Can a tenant have multiple API keys?">
+        Yes. You can issue as many keys as needed per tenant via
+        `POST /v1/tenants/:id/keys`. A common pattern is one key per environment
+        (Sandbox and Live) and an additional read-only key for analytics tooling.
+    </Accordion>
+    <Accordion title="Does each tenant have separate rate limits?">
+        Yes. Rate limits are enforced per API key. A tenant hitting their limit
+        has no impact on any other tenant or on your owner account.
+    </Accordion>
+    <Accordion title="Can I transfer a tenant to a different owner?">
+        Tenant transfer between owner accounts is not supported via the API today.
+        Contact support if you need to migrate tenants as part of an acquisition
+        or platform restructure.
+    </Accordion>
+</AccordionGroup>

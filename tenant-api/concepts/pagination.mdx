@@ -1,0 +1,247 @@
+---
+title: "Pagination"
+description: "Efficiently traverse large collections of resources using Travelbase's cursor-based pagination system."
+---
+
+## Overview
+
+When an endpoint returns a list of resources, results are split into **pages**
+to keep response sizes predictable and latency low. Travelbase uses
+**cursor-based pagination** — a pointer that marks your exact position in the
+dataset, so you never miss a record or see a duplicate even when data changes
+between requests.
+
+<CardGroup cols={3}>
+  <Card title="Cursor-Based" icon="arrow-right-arrow-left" color="#6366f1">
+    A cursor encodes your exact position in the list. Far more reliable than
+    offset/page-number pagination on live data.
+  </Card>
+  <Card title="Stable Order" icon="arrow-down-a-z" color="#f59e0b">
+    Results are always sorted by `createdAt` descending. Inserting new records
+    never shifts the pages you've already fetched.
+  </Card>
+  <Card title="Configurable Size" icon="sliders" color="#22c55e">
+    Control how many records come back per page with the `limit` parameter
+    (default `20`, max `100`).
+  </Card>
+</CardGroup>
+
+---
+
+## Query Parameters
+
+Use these parameters on any list endpoint to control pagination.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | `integer` | `20` | Number of records per page. Maximum is `100`. |
+| `cursor` | `string` | — | Opaque cursor returned by the previous response. Omit for the first page. |
+
+<Tip>
+  Start without a `cursor` to get the first page. On every subsequent request,
+  pass the `nextCursor` from the previous response until it comes back `null`.
+</Tip>
+
+---
+
+## Response Envelope
+
+Every paginated response wraps its list inside a `data` object alongside a
+`pagination` block.
+
+```json
+{
+  "success": true,
+  "message": "Bookings retrieved successfully",
+  "data": {
+    "items": [ ...],
+    "pagination": {
+      "total": 340,
+      "limit": 20,
+      "hasMore": true,
+      "nextCursor": "cur_eyJpZCI6ImJrXzAwNDIifQ",
+      "prevCursor": null
+    }
+  }
+}
+```
+
+### Pagination Fields
+
+<CardGroup cols={2}>
+  <Card title="hasMore" icon="chevrons-right" color="#6366f1">
+    `true` when at least one more page exists after the current one. Use this
+    as your loop condition when fetching all records.
+  </Card>
+  <Card title="nextCursor" icon="arrow-right" color="#6366f1">
+    Pass this value as the `cursor` parameter in your next request. Returns
+    `null` on the last page.
+  </Card>
+  <Card title="prevCursor" icon="arrow-left" color="#f59e0b">
+    Lets you navigate backwards. `null` when you are on the first page.
+  </Card>
+  <Card title="total" icon="sigma" color="#22c55e">
+    The total number of records across all pages — useful for rendering
+    progress indicators or record counts in your UI.
+  </Card>
+</CardGroup>
+
+---
+
+## Fetching Pages
+
+### First Page
+
+Omit `cursor` entirely to start at the beginning.
+
+```bash
+curl -X GET "https://sandbox.travelbase.ai/v1/bookings?limit=20" \
+  -H "Authorization: Bearer tb_test_xxxxxxxxxxxxxxxxx"
+```
+
+### Next Page
+
+Take the `nextCursor` from the previous response and pass it as `cursor`.
+
+```bash
+curl -X GET "https://sandbox.travelbase.ai/v1/bookings?limit=20&cursor=cur_eyJpZCI6ImJrXzAwNDIifQ" \
+  -H "Authorization: Bearer tb_test_xxxxxxxxxxxxxxxxx"
+```
+
+<Note>
+  Cursors are **opaque** — never construct or modify them manually. Their
+  internal format may change without notice. Always use the value exactly as
+  returned by the API.
+</Note>
+
+---
+
+## Iterating All Pages
+
+### JavaScript
+
+```javascript
+async function fetchAllBookings() {
+  const bookings = [];
+  let cursor = null;
+
+  do {
+    const url = new URL("https://sandbox.travelbase.ai/v1/bookings");
+    url.searchParams.set("limit", "100");
+    if (cursor) url.searchParams.set("cursor", cursor);
+
+    const res = await fetch(url, {
+      headers: { Authorization: "Bearer tb_test_xxxxxxxxxxxxxxxxx" },
+    });
+
+    const { data } = await res.json();
+    bookings.push(...data.items);
+
+    cursor = data.pagination.nextCursor;
+  } while (cursor);
+
+  return bookings;
+}
+```
+
+### Python
+
+```python
+import requests
+
+def fetch_all_bookings():
+    bookings = []
+    cursor = None
+    base_url = "https://sandbox.travelbase.ai/v1/bookings"
+    headers = {"Authorization": "Bearer tb_test_xxxxxxxxxxxxxxxxx"}
+
+    while True:
+        params = {"limit": 100}
+        if cursor:
+            params["cursor"] = cursor
+
+        response = requests.get(base_url, headers=headers, params=params)
+        data = response.json()["data"]
+
+        bookings.extend(data["items"])
+
+        cursor = data["pagination"]["nextCursor"]
+        if not cursor:
+            break
+
+    return bookings
+```
+
+<Tip>
+  When pulling large datasets, set `limit=100` to minimize the number of
+  round-trips and reduce overall latency.
+</Tip>
+
+---
+
+## How Cursor Pagination Works
+
+Unlike offset pagination (`?page=3`), cursors point to a **specific record**
+in the ordered dataset. This means:
+
+<CardGroup cols={2}>
+  <Card title="✅ Consistent results" icon="shield-check" color="#22c55e">
+    Records inserted or deleted between requests do not cause pages to shift,
+    so every record appears exactly once across a full traversal.
+  </Card>
+  <Card title="✅ Scales to millions" icon="bolt" color="#22c55e">
+    The database skips directly to the cursor position — no expensive
+    `OFFSET` counting that slows down on large tables.
+  </Card>
+  <Card title="❌ No random access" icon="ban" color="#ef4444">
+    You cannot jump directly to page 47. Traverse sequentially, or cache
+    cursors you've seen if you need to revisit a page.
+  </Card>
+  <Card title="❌ Cursors expire" icon="clock" color="#ef4444">
+    Cursors are valid for **24 hours**. Do not persist them across sessions
+    or store them in a database for long-term use.
+  </Card>
+</CardGroup>
+
+---
+
+## Error Reference
+
+| Code | HTTP | Meaning |
+|------|------|---------|
+| `INVALID_CURSOR` | `400` | The cursor value is malformed or has expired. Restart from the first page. |
+| `LIMIT_OUT_OF_RANGE` | `400` | `limit` is less than `1` or greater than `100`. |
+| `RATE_LIMIT_EXCEEDED` | `429` | Too many requests. Respect the `Retry-After` header. |
+
+<Warning>
+  If you receive an `INVALID_CURSOR` error mid-traversal, your only safe
+  option is to **restart from the first page**. Cursors cannot be repaired or
+  reconstructed.
+</Warning>
+
+---
+
+## Best Practices
+
+<Steps>
+  <Step title="Always check hasMore, not nextCursor">
+    Treat `hasMore: false` as your definitive stop condition.`nextCursor`
+    being `null` is equivalent, but `hasMore` is more explicit and easier to
+    read at a glance.
+  </Step>
+  <Step title="Use the maximum limit for bulk jobs">
+    For background sync or data export tasks, set `limit=100` to reduce
+    round-trips. Reserve smaller limits for UI-driven pagination where you
+    only need a few records at a time.
+  </Step>
+  <Step title="Handle INVALID_CURSOR gracefully">
+    Cursors expire after 24 hours. Build retry logic that catches
+    `INVALID_CURSOR` and restarts from the beginning rather than crashing
+    your sync job.
+  </Step>
+  <Step title="Respect rate limits">
+    Paginating hundreds of pages in a tight loop can trigger rate limiting.
+    Add a small delay between requests or use exponential back-off when you
+    receive a `429` response.
+  </Step>
+</Steps>

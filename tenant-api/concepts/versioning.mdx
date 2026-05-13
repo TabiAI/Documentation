@@ -1,0 +1,196 @@
+---
+title: "API Versioning"
+description: "Understand how Travelbase versions its API, how to target a specific version, and how to migrate safely when breaking changes are introduced."
+---
+
+## Overview
+
+Travelbase versions its API to give you stability guarantees while still
+allowing the platform to evolve. Every breaking change ships in a new version
+— your existing integrations keep working exactly as they do today until you
+choose to upgrade.
+
+<CardGroup cols={3}>
+    <Card title="Current Version" icon="circle-check" color="#22c55e">
+        **v1** is the current stable version and the default for all new
+        integrations.
+    </Card>
+    <Card title="Version in URL" icon="link" color="#6366f1">
+        The version is part of every request URL — `/v1/`, `/v2/`, etc. — making
+        it explicit and impossible to miss.
+    </Card>
+    <Card title="Deprecation Notice" icon="bell" color="#f59e0b">
+        Deprecated versions receive a minimum **12-month** sunset window with
+        email notices before they are removed.
+    </Card>
+</CardGroup>
+
+---
+
+## Specifying a Version
+
+The API version is embedded directly in the base URL. There is no header or
+query parameter required.
+
+```bash
+# v1 — current stable
+https://sandbox.travelbase.ai/v1/bookings
+
+# v2 — next major version (if available)
+https://sandbox.travelbase.ai/v2/bookings
+```
+
+<Note>
+    If you omit the version segment from the URL the request will be rejected
+    with a `400 Bad Request`. Always include `/v{n}/` in every call.
+</Note>
+
+---
+
+## Version Lifecycle
+
+Every API version moves through four stages before it is fully retired.
+
+<Steps>
+    <Step title="Beta">
+        New endpoints and breaking changes land here first. Beta is suitable for
+        early adopters and experimentation — **not** for production traffic.
+        Interfaces may still shift without a deprecation notice.
+    </Step>
+    <Step title="Stable">
+        The version is production-ready. No breaking changes will be introduced.
+        Only backwards-compatible additions (new optional fields, new endpoints)
+        are allowed.
+    </Step>
+    <Step title="Deprecated">
+        A newer stable version has been released. The deprecated version continues
+        to work but will stop receiving new features. A sunset date is announced
+        at least **12 months** in advance.
+    </Step>
+    <Step title="Sunset">
+        The version is fully retired. All requests return `410 Gone`. You must
+        migrate to a supported version before this date.
+    </Step>
+</Steps>
+
+---
+
+## Version Status
+
+<CardGroup cols={2}>
+    <Card title="v1 — Stable" icon="circle-check" color="#22c55e">
+        Current recommended version. Actively maintained with new backwards-compatible
+        features. All new integrations should target `v1`.
+    </Card>
+    <Card title="v0 — Sunset" icon="circle-xmark" color="#ef4444">
+        Fully retired as of **December, 2025**. All `v0` requests return `410 Gone`.
+        Migrate to `v1` immediately if you are still on `v0`.
+    </Card>
+</CardGroup>
+
+<Warning>
+    If your integration still targets `/v0/`, it is broken right now. Follow the
+    [migration guide](#migrating-between-versions) below to move to `v1`.
+</Warning>
+
+---
+
+## What Counts as a Breaking Change
+
+Travelbase follows a strict policy on what constitutes a breaking change.
+Anything in the left column triggers a new major version; anything in the
+right column does not.
+
+| Breaking — new version required | Non-breaking — same version |
+|------------------------------------|--------------------------------|
+| Removing or renaming a field | Adding a new optional field |
+| Changing a field's data type | Adding a new endpoint |
+| Removing an endpoint | Adding a new optional query parameter |
+| Changing HTTP method for an endpoint | Expanding an enum with new values |
+| Altering authentication scheme | Improving error messages |
+| Changing error code values | Reducing response latency |
+
+<Tip>
+    Because non-breaking changes are additive, always write code that **ignores
+    unknown fields** rather than erroring on them. This keeps your integration
+    forwards-compatible with minor additions.
+</Tip>
+
+---
+
+## Deprecation Headers
+
+When you are calling a deprecated version, every response includes two
+warning headers so your monitoring can surface the issue automatically.
+
+```http
+Deprecation: true
+Sunset: Sat, 01 Mar 2025 00:00:00 GMT
+```
+
+| Header | Value |
+|--------|-------|
+| `Deprecation` | Always `true` when the targeted version is deprecated. |
+| `Sunset` | ISO 8601 date-time after which the version will return `410 Gone`. |
+
+<Warning>
+    Set up alerts on the `Deprecation` header in your API client or gateway.
+    Relying only on email notices risks missing the migration window.
+</Warning>
+
+---
+
+## Migrating Between Versions
+
+<Steps>
+    <Step title="Read the changelog">
+        Every version bump ships with a dedicated changelog that lists every
+        breaking change, renamed field, and removed endpoint. Start there before
+        touching any code.
+    </Step>
+    <Step title="Spin up a parallel environment">
+        Point a staging instance at the new version URL (`/v2/`) while production
+        stays on the old one. Run your full test suite against staging first.
+    </Step>
+    <Step title="Update your request URLs">
+        Do a project-wide find-and-replace of `/v1/` → `/v2/` (or whichever
+        version you are moving to). If your base URL is in a single config
+        constant this is a one-line change.
+    </Step>
+    <Step title="Adapt to breaking changes">
+        Work through each breaking change listed in the changelog. Use the request
+        and response examples in the endpoint docs to validate your updated
+        payloads.
+    </Step>
+    <Step title="Promote to production">
+        Once staging is green, update the base URL in your production config and
+        deploy. Monitor error rates for the first 30 minutes after release.
+    </Step>
+</Steps>
+
+---
+
+## FAQ
+
+<AccordionGroup>
+    <Accordion title="Will my integration break when a new version is released?">
+        No. Releasing `v2` has zero impact on `v1`. Your requests continue to hit
+        `/v1/` and behave exactly as they do today. You migrate on your own
+        schedule within the deprecation window.
+    </Accordion>
+    <Accordion title="How much notice will I get before a version is sunset?">
+        At least **12 months**. You will receive email notices at 12 months, 6
+        months, 3 months, and 1 month before the sunset date. Response headers
+        also carry the `Sunset` date on every request to the deprecated version.
+    </Accordion>
+    <Accordion title="Can I pin to a minor version like v1.2?">
+        No. Minor versions (`v1.1`, `v1.2`) are additive and backwards-compatible,
+        so pinning is unnecessary. You always receive the latest minor version
+        within your chosen major version automatically.
+    </Accordion>
+    <Accordion title="What happens after the sunset date?">
+        All requests to the retired version return `410 Gone` with an error body
+        pointing to the migration guide. No data is lost — only the old version's
+        endpoints stop responding.
+    </Accordion>
+</AccordionGroup>

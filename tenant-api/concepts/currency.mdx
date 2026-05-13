@@ -1,0 +1,60 @@
+---
+title: "Currency"
+description: "All monetary values in the Travelbase API are denominated in US Dollars (USD)."
+---
+
+## Overview
+
+Travelbase currently supports a single currency. Every monetary amount in a
+request or response is in **US Dollars (USD)**.
+
+<CardGroup cols={3}>
+    <Card title="Supported" icon="circle-check" color="#22c55e">
+        **USD** — US Dollar
+    </Card>
+    <Card title="Format" icon="hashtag" color="#6366f1">
+        Integer **cents** — `4999` means $49.99
+    </Card>
+    <Card title="More Coming" icon="clock" color="#f59e0b">
+        Multi-currency support is on the roadmap.
+    </Card>
+</CardGroup>
+
+## Format
+
+All amounts are expressed as **integers in the smallest currency unit** —
+cents for USD. There are no decimals anywhere in the API.
+
+```json
+{
+  "amount": 4999,
+  "currency": "USD"
+}
+```
+
+<Warning>
+    Never pass a decimal like `49.99`. The API expects `4999` — the value in
+    cents. Passing a float will result in a `400 Bad Request`.
+</Warning>
+
+## Display Conversion
+
+Divide by `100` before rendering amounts to end users.
+
+```javascript
+// API value → display string
+const display = (amount) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" })
+    .format(amount / 100);
+
+display(4999); // → "$49.99"
+display(100);  // → "$1.00"
+```
+
+## Coming Soon
+
+<Info>
+    Multi-currency support (EUR, GBP, and more) is currently in development.
+    When released, a `currency` field on each request will let you specify the
+    denomination. Existing USD integrations will not require any changes.
+</Info>

@@ -1,0 +1,72 @@
+---
+title: "Webhooks"
+description: "Configure outbound webhooks to receive real-time event notifications."
+---
+
+# Webhook delivery format
+Travelbase delivers webhook events as HTTP POST requests with a JSON payload.
+Example delivery
+
+```json
+{
+"id": "evt_01hzy9k2yz",
+"type": "order.ticketed",
+"created_at": "2026-02-20T16:25:51.293Z",
+"data": {
+"order_id": "ord_123",
+"status": "ticketed"
+}
+}
+```
+
+## Delivery headers
+
+Each webhook delivery includes security and metadata headers to help your system verify authenticity and process events safely.
+
+| Header | Description |
+|---|---|
+| `x-webhook-id` | Unique identifier for the webhook delivery |
+| `x-webhook-event` | Event type (for example, `order.ticketed`) |
+| `x-webhook-timestamp` | ISO timestamp indicating when the event was generated |
+| `x-webhook-signature` | HMAC SHA-256 signature used to verify authenticity |
+
+<Note>
+    Always verify webhook signatures before processing events to prevent unauthorized requests.
+</Note>
+
+## Signature verification
+
+Travelbase signs each webhook delivery using your webhook secret. Your system must verify this signature before accepting the event.
+
+### Signature format
+
+The signature is generated using HMAC SHA-256:
+
+```text
+HMAC_SHA256(secret, `${timestamp}.${payload}`)
+```
+
+### Signature components
+
+The signature is generated using the following components:
+
+| Component | Description |
+|---|---|
+| `secret` | Your webhook signing secret |
+| `timestamp` | Value from the `x-webhook-timestamp` header |
+| `payload` | Raw HTTP request body exactly as received |
+
+# Delivery guarantees
+Travelbase provides reliable and fault-tolerant webhook delivery to ensure your system receives critical events.
+<CardGroup cols={2}> <Card title="Automatic retries" icon="repeat"> Failed webhook deliveries are retried
+    automatically using exponential backoff until successful. </Card> <Card title="At-least-once delivery"
+                                                                            icon="arrow-right"> Webhooks are guaranteed
+    to be
+    delivered at least once. Your system must safely handle duplicate deliveries. </Card> </CardGroup>
+Best practices
+Follow these best practices to ensure secure, reliable, and production-ready webhook handling.
+<CardGroup cols={2}> <Card title="Verify signatures" icon="shield-check"> Always verify the webhook signature before
+    processing events. </Card> <Card title="Respond quickly" icon="clock"> Return an HTTP 200 response immediately after
+    receiving the webhook to prevent retries. </Card> <Card title="Implement idempotency" icon="copy"> Store and track
+    webhook event IDs to prevent duplicate processing. </Card> <Card title="Use secure endpoints" icon="lock"> Only
+    configure HTTPS endpoints to ensure secure communication. </Card> </CardGroup> ```

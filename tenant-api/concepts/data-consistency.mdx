@@ -1,0 +1,92 @@
+---
+title: "Data Consistency"
+description: "Understand how Travelbase handles consistency guarantees, what to expect after writes, and how to build reliable integrations around them."
+---
+
+## Overview
+
+Travelbase is **strongly consistent for single-resource operations** and
+**eventually consistent for derived data** such as aggregates, search indexes,
+and usage metrics. Understanding this distinction will save you from writing
+unnecessary polling logic — and from missing the cases where it actually matters.
+
+<CardGroup cols={2}>
+    <Card title="Strong Consistency" icon="shield-check" color="#22c55e">
+        Any resource you create or update is immediately readable by its ID on the
+        very next request — on any server, in any region.
+    </Card>
+    <Card title="Eventual Consistency" icon="clock" color="#f59e0b">
+        Aggregates, list filters, search indexes, and usage counters may lag by up
+        to **a few seconds** after a write before reflecting the latest state.
+    </Card>
+</CardGroup>
+
+---
+
+## What Is Consistent When
+
+| Operation | Consistency | Typical Lag |
+|-----------|-------------|-------------|
+| `GET /v1/bookings/:id` after a create or update | **Strong** | Immediate |
+| `GET /v1/customers/:id` after a create or update | **Strong** | Immediate |
+| List endpoints (`GET /v1/bookings`) | **Eventual** | Up to 5s |
+| Search & filter queries | **Eventual** | Up to 5s |
+| Usage metrics & counters | **Eventual** | Up to 30s |
+| Webhook delivery after an event | **Eventual** | Up to 10s |
+
+<Tip>
+    After a write, always redirect to or reference the resource **by ID** rather
+    than reloading a list. The list may not yet include the new record — the
+    individual resource always will.
+</Tip>
+
+---
+
+## Idempotency
+
+All mutating requests (`POST`, `PATCH`, `DELETE`) accept an
+`Idempotency-Key` header. Sending the same key twice within **24 hours**
+returns the original response without creating a duplicate or triggering a
+second side-effect.
+
+```bash
+curl -X POST "https://api.travelbase.ai/v1/bookings" \
+  -H "Authorization: Bearer tb_live_xxxx" \
+  -H "Idempotency-Key: a1b2c3d4-e5f6-7890-abcd-ef1234567890" \
+  -H "Content-Type: application/json" \
+  -d '{ ... }'
+```
+
+<Warning>
+    Always use idempotency keys for any request that moves money or creates a
+    booking. A network timeout does not mean the request failed — retrying
+    without a key can result in duplicate bookings.
+</Warning>
+
+---
+
+## Conflicts
+
+When two requests attempt to update the same resource simultaneously,
+Travelbase uses **optimistic concurrency control**. Every mutable resource
+exposes a `version` field. Pass it on updates — if the version has moved on
+since you read the record, the request is rejected.
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "CONFLICT",
+    "detail": "Resource version mismatch. Re-fetch the resource and retry."
+  }
+}
+```
+
+The correct response to a `409 Conflict` is always: **re-fetch → apply
+changes → retry**.
+
+<Info>
+    The `version` field increments by `1` on every successful mutation. You can
+    use this to detect whether a record changed between two reads without
+    comparing all of its fields.
+</Info>

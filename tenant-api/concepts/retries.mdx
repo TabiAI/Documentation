@@ -1,0 +1,134 @@
+---
+title: "Retries"
+description: "Know which requests are safe to retry, how to back off correctly, and how to use idempotency keys to prevent duplicate side-effects."
+---
+
+## Overview
+
+Travelbase removes all guesswork from retry logic. Every error response
+includes a `retryable` flag and a `fault` field — your code never needs to
+maintain a list of retryable status codes or infer blame from HTTP semantics.
+
+<CardGroup cols={2}>
+    <Card title="retryable" icon="rotate" color="#6366f1">
+        A boolean telling you **directly** whether this exact error is safe to
+        retry. If `false`, retrying the same request will produce the same error.
+    </Card>
+    <Card title="fault" icon="circle-half-stroke" color="#f59e0b">
+        `"server"` means Travelbase caused the failure. `"client"` means something
+        in your request needs to be fixed before retrying.
+    </Card>
+</CardGroup>
+
+---
+
+## Error Response Shape
+
+Every error from the Travelbase API follows this consistent envelope. The `retryable`, `errorCode`, `fault` fields are your source of truth for retry decisions — not the HTTP status code.
+```json
+{
+        "success": false,
+        "statusCode": 400,
+        "errorCode": "TB_AUTH_101",
+        "message": "Invalid API key",
+        "fault": "client",
+        "retryable": true,
+        "suggestedAction": "verify your API key and try again",
+        "reason": "Invalid API key",
+        "environment": "sandbox",
+        "apiVersion": "1.0.0"
+    }
+```
+
+<Note>
+    Always drive retry decisions from `retryable` and `fault` — not the HTTP
+    status code. The status code is a useful hint, but these two fields are the
+    source of truth.
+</Note>
+
+---
+
+## Decision Matrix
+
+Use `retryable` and `fault` together to decide your next move.
+
+| `retryable` | `fault` | What to do |
+|-------------|---------|------------|
+| `true` | `"server"` | Back off and retry — Travelbase had a transient fault. |
+| `true` | `"client"` | Wait for the condition to clear (e.g. rate limit), then retry. |
+| `false` | `"server"` | Do not retry. Contact support — this is an unexpected server-side error. |
+| `false` | `"client"` | Fix your request (auth, validation, missing resource) and resubmit a corrected payload. |
+
+---
+
+## Backoff Strategy
+
+For every `retryable: true` response, use **exponential backoff with jitter**.
+Always honour the `Retry-After` header when it is present.
+
+```javascript
+async function requestWithRetry(fn, maxAttempts = 5) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const res = await fn();
+
+    if (res.success) return res;
+
+    const { retryable } = res.error;
+    if (!retryable || attempt === maxAttempts) throw res.error;
+
+    const retryAfter = res.headers?.["retry-after"];
+    const base = retryAfter
+      ? retryAfter * 1000
+      : Math.min(Math.pow(2, attempt) * 1000, 30_000); // 30s ceiling
+    const jitter = Math.random() * 1000;
+
+    await new Promise((resolve) => setTimeout(resolve, base + jitter));
+  }
+}
+```
+
+<Tip>
+    The retry condition collapses to a single field check — `if (!retryable)`.
+    Do not layer your own status code overrides on top; trust the field and keep
+    the logic simple.
+</Tip>
+
+
+## Idempotency Keys
+
+`retryable: true` on a mutating request (`POST`, `PATCH`, `DELETE`) is only
+safe to act on when you include an `Idempotency-Key`. Without one, a retry
+may create duplicates or trigger the same side-effect twice.
+
+```bash
+curl -X POST "https://api.travelbase.ai/v1/bookings" \
+  -H "Authorization: Bearer tb_live_xxxx" \
+  -H "Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000" \
+  -H "Content-Type: application/json" \
+  -d '{ ... }'
+```
+
+<Warning>
+    Generate the idempotency key **once** before your first attempt and reuse
+    the same value on every retry. A new key on each attempt is treated as a
+    brand-new operation — duplicates will be created.
+</Warning>
+
+---
+
+## Retry Limits
+
+<CardGroup cols={3}>
+    <Card title="Max Attempts" icon="list-ol" color="#6366f1">
+        Cap at **5 attempts** per request. After that, surface the error to the
+        caller rather than retrying indefinitely.
+    </Card>
+    <Card title="Max Backoff" icon="gauge-high" color="#f59e0b">
+        Clamp the delay to a **30-second ceiling** to prevent exponential growth
+        from producing multi-minute waits.
+    </Card>
+    <Card title="Total Budget" icon="stopwatch" color="#22c55e">
+        Set a **2-minute total timeout** across all attempts. Abort the entire
+        operation once exceeded, regardless of attempt count.
+    </Card>
+</CardGroup>
