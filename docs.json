@@ -37,13 +37,11 @@
               "tenant-api/concepts/errors",
               "tenant-api/concepts/rate-limits",
               "tenant-api/concepts/idempotency",
-
               "tenant-api/concepts/pagination",
               "tenant-api/concepts/versioning",
               "tenant-api/concepts/offer-lifecycle",
               "tenant-api/concepts/order-lifecycle",
               "tenant-api/concepts/expiration",
-              "tenant-api/concepts/pricing-and-markup",
               "tenant-api/concepts/currency",
               "tenant-api/concepts/webhook-delivery",
               "tenant-api/concepts/retries",
