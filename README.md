@@ -1,55 +1,59 @@
-# Mintlify Starter Kit
+# Engineering Documentation
 
-Use the starter kit to get your docs deployed and ready to customize.
+Welcome to the central documentation for Travelbase Core Engine. This directory contains our engineering governance,
+system blueprints, and platform runbooks.
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
+Our documentation is powered by **Mintlify** and treated exactly like production code: it lives in this repository, is
+versioned via git, and requires peer review for any structural modifications.
 
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
+---
 
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
+## The Core Documentation Matrix
 
-## AI-assisted writing
+Our documentation footprint is split into three foundational modules. Before contributing to the engine, you are
+required to understand the rules outlined within these specs.
 
-Set up your AI coding tool to work with Mintlify:
+### 1. Engineering Governance
+
+* **Location:** `docs/governance/`
+* **The Rule:** This is the absolute law of the repository. It defines our strict transactional boundaries, mandatory
+  multi-tenant query structures, and PR sign-off requirements.
+* **The Goal:** To ensure every developer writes code that protects data integrity and prevents cross-tenant leakage.
+
+### 2. System Architecture
+
+* **Location:** `docs/architecture/`
+* **The Rule:** This module charts our foundational infrastructure layout—how our Fastify core handles multi-tenant
+  identity mapping, our append-only USD ledger mechanics, and our isolated gateway integration boundaries.
+* **The Goal:** To map system constraints and data lifecycles cleanly without bloating individual endpoint descriptions.
+
+### 3. API Reference
+
+* **Location:** `docs/api-reference/`
+* **The Rule:** This directory manages our OpenAPI routing manifests. Do not manually type endpoint tables or JSON
+  payloads into raw markdown.
+* **The Goal:** Project V8 automatically compiles typescript routing schemas into native OpenAPI specs, ensuring our
+  client-facing references can never drift from the underlying codebase.
+
+---
+
+## Local Development & Preview
+
+To preview the documentation portal locally exactly how it renders in production, use the Mintlify CLI engine.
+
+### Prerequisites
+
+Ensure you have the Mintlify CLI installed globally on your machine:
 
 ```bash
-npx skills add https://mintlify.com/docs
+npm i -g mintlify
 ```
 
-This command installs Mintlify's documentation skill for your configured AI tools like Claude Code, Cursor, Windsurf, and others. The skill includes component reference, writing standards, and workflow guidance.
+### Running the Preview Server
 
-See the [AI tools guides](/ai-tools) for tool-specific setup.
+Navigate to this directory and ignite the local development server:
 
-## Development
-
-Install the [Mintlify CLI](https://www.npmjs.com/package/mint) to preview your documentation changes locally. To install, use the following command:
-
+```Bash
+cd docs
+mintlify dev
 ```
-npm i -g mint
-```
-
-Run the following command at the root of your documentation, where your `docs.json` is located:
-
-```
-mint dev
-```
-
-View your local preview at `http://localhost:3000`.
-
-## Publishing changes
-
-Install our GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) to propagate changes from your repo to your deployment. Changes are deployed to production automatically after pushing to the default branch.
-
-## Need help?
-
-### Troubleshooting
-
-- If your dev environment isn't running: Run `mint update` to ensure you have the most recent version of the CLI.
-- If a page loads as a 404: Make sure you are running in a folder with a valid `docs.json`.
-
-### Resources
-- [Mintlify documentation](https://mintlify.com/docs)
