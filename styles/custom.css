@@ -1,16 +1,8 @@
-/* ===================================================== */
-/* TRAVELBASE — HORIZON SYSTEM     */
-/* ===================================================== */
-
 :root {
     --tb-brand: 15, 98, 254;
     --tb-sky: 130, 177, 255;
     --tb-grid: rgba(15, 98, 254, 0.04);
 }
-
-/* ===================================================== */
-/* 1. SKY (DEPTH BASE)                                   */
-/* ===================================================== */
 html::before {
     content: "";
     position: fixed;
@@ -25,10 +17,6 @@ html::before {
 
     pointer-events: none;
 }
-
-/* ===================================================== */
-/* 2. GRID (STRUCTURE)                                   */
-/* ===================================================== */
 html::after {
     content: "";
     position: fixed;
@@ -49,28 +37,17 @@ html::after {
     pointer-events: none;
 }
 
-/* ===================================================== */
-/* 3. TRAVEL BACKGROUND (TOP-BIASED + PARALLAX)           */
-/* ===================================================== */
 body::before {
     content: "";
     position: fixed;
-    inset: -3%; /* slight overflow for movement */
+    inset: -3%;
     z-index: -4;
-
     background-image: url('/images/background_image.png');
     background-size: cover;
-
-    /* 🔥 THIS IS THE KEY CHANGE (show top more) */
     background-position: top center;
-
     background-repeat: no-repeat;
-
     filter: grayscale(1) contrast(0.95) brightness(1.05) blur(2px);
-
     opacity: 0.085;
-
-    /* Horizon fade */
     mask-image: linear-gradient(
             to bottom,
             rgba(0, 0, 0, 0.9) 0%,
@@ -80,8 +57,6 @@ body::before {
     );
 
     pointer-events: none;
-
-    /* subtle motion */
     animation: tb-float 40s ease-in-out infinite alternate;
 }
 
@@ -93,10 +68,6 @@ body::before {
         transform: scale(1.05) translateY(-18px);
     }
 }
-
-/* ===================================================== */
-/* 4. LIGHT SYSTEM (DEPTH + FOCUS)                        */
-/* ===================================================== */
 body::after {
     content: "";
     position: fixed;
@@ -109,10 +80,6 @@ body::after {
     pointer-events: none;
 }
 
-/* ===================================================== */
-/* 9. CURSOR LIGHTING (ATMOSPHERIC INTERACTION)           */
-/* ===================================================== */
-
 body::marker {
     content: "";
 }
@@ -122,10 +89,8 @@ body::selection {
 }
 
 body::after {
-    /* keep your watermark — DO NOT REMOVE */
 }
 
-/* ✨ NEW LIGHT LAYER */
 .cursor-light {
     position: fixed;
     inset: 0;
@@ -140,10 +105,6 @@ body::after {
 
     transition: background 0.1s ease;
 }
-
-/* ===================================================== */
-/* 10. DYNAMIC SKY SHIFT (TIME-BASED ATMOSPHERE)          */
-/* ===================================================== */
 
 html::before {
     animation: tb-sky-shift 60s ease-in-out infinite alternate;
@@ -174,23 +135,16 @@ html::before {
         );
     }
 }
-
-/* ===================================================== */
-/* TRAVELBASE — GLOBAL ENTERPRISE "LANDING STRIP" FOOTER */
-/* ===================================================== */
 footer::after {
     content: "";
     display: block;
 
-    /* Changed to fixed to keep it on screen at all times */
     position: fixed;
 
-    /* Anchored to the viewport bottom */
     bottom: -50px;
     left: 50%;
     transform: translateX(-50%);
 
-    /* Extreme Enterprise Scale */
     width: 90vw;
     height: 500px;
 
@@ -199,33 +153,26 @@ footer::after {
     background-position: bottom center;
     background-size: contain;
 
-    /* Professional Watermark Styling */
     opacity: 0.05;
     filter: grayscale(1) brightness(0.9);
 
-    /* Keeps the logo BEHIND the text and non-interactive */
     pointer-events: none;
     z-index: -10;
 
-    /* The "Fade-In" from the bottom */
     mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 20%, transparent 80%);
     -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 20%, transparent 80%);
 }
 
-/* 2. Article padding is still good for the very end of the page,
-      but no longer strictly required for the logo visibility */
 article {
     padding-bottom: 200px !important;
 }
 
-/* 🌙 DARK MODE REFINEMENT */
 .dark footer::after {
     background-image: url('/images/Travelbase_logo_white.png');
     opacity: 0.18;
     filter: brightness(1.2) contrast(0.7);
 }
 
-/* 3. MOBILE SCALING */
 @media (max-width: 768px) {
     footer::after {
         width: 120vw;
@@ -249,19 +196,12 @@ article {
     }
 }
 
-
-/* ===================================================== */
-/* 6. HEADER (GLASS)                                     */
-/* ===================================================== */
 .mintlify-header {
     border-bottom: 1px solid rgba(var(--tb-brand), 0.1) !important;
     backdrop-filter: blur(14px);
     background: rgba(255, 255, 255, 0.65);
 }
 
-/* ===================================================== */
-/* 7. SEARCH (PRECISION UI)                              */
-/* ===================================================== */
 .mintlify-search-button {
     border-radius: 4px !important;
     border: 1px solid rgba(var(--tb-brand), 0.15) !important;
@@ -274,9 +214,6 @@ article {
     box-shadow: 0 6px 18px rgba(var(--tb-brand), 0.1);
 }
 
-/* ===================================================== */
-/* 8. FLIGHT LOG (COORDINATE SYSTEM)                      */
-/* ===================================================== */
 @media (min-width: 1024px) {
     .flight-log::before {
         content: "TRAVELBASE // LAT: 6.5244N // LNG: 3.3792E // AIR SYSTEM ACTIVE";
@@ -295,9 +232,6 @@ article {
     }
 }
 
-/* ===================================================== */
-/* 🌙 DARK MODE (NIGHT FLIGHT)                           */
-/* ===================================================== */
 .dark {
     --tb-grid: rgba(255, 255, 255, 0.03);
 }
