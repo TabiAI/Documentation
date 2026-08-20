@@ -119,22 +119,49 @@ POST /v1/air/orders`
       "phone_number": "+12025550123"
     }
   ],
-  "services": [],
+  "additionalBaggage": [
+    {
+      "optionId": "bag_option_...",
+      "quantity": 2
+    }
+  ],
   "metadata": {
     "reference": "ABC-123"
   }
 }
 ```
 
+`additionalBaggage` is optional. Each `optionId` must come from the latest offer response. `quantity` must be between `1` and the option's `maximumQuantity`.
+
+The response returns normalized baggage selections, and `totalCents` includes the flight and all selected additional baggage.
+
 # Response
 
 ```json
 {
-"id": "ord_7f9a2c3d",
-"status": "PENDING",
-"totalCents": 26032,
-"currency": "USD",
-"createdAt": "2026-02-20T16:25:51.293Z"
+  "id": "ord_7f9a2c3d",
+  "status": "PENDING",
+  "totalCents": 31032,
+  "currency": "USD",
+  "additionalBaggage": [
+    {
+      "optionId": "bag_option_...",
+      "quantity": 2,
+      "passengerIds": ["psg_1"],
+      "segmentIds": ["seg_1"],
+      "unitPrice": {
+        "amount": "25.00",
+        "amountCents": 2500,
+        "currency": "USD"
+      },
+      "totalPrice": {
+        "amount": "50.00",
+        "amountCents": 5000,
+        "currency": "USD"
+      }
+    }
+  ],
+  "createdAt": "2026-02-20T16:25:51.293Z"
 }
 ```
 

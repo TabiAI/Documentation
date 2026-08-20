@@ -1,0 +1,82 @@
+---
+title: "Additional baggage"
+description: "Retrieve and book additional baggage for an offer."
+---
+
+# Additional baggage
+
+You add baggage after selecting a flight offer. Baggage options are specific to an offer, passenger, and flight segment.
+
+## Retrieve baggage options
+
+Request the latest offer with baggage options:
+
+```http
+GET /v1/air/offers/{offerId}?include_additional_baggage=true
+```
+
+The response contains `additionalBaggageOptions`. Each option provides its price, maximum quantity, eligible passengers, and eligible segments.
+
+```json
+{
+  "additionalBaggageOptions": [
+    {
+      "optionId": "bag_option_...",
+      "maximumQuantity": 2,
+      "passengerIds": ["psg_1"],
+      "segmentIds": ["seg_1"],
+      "unitPrice": {
+        "amount": "25.00",
+        "amountCents": 2500,
+        "currency": "USD"
+      }
+    }
+  ]
+}
+```
+
+<Note>
+  Not every offer supports additional baggage. An empty array means no baggage options are currently available.
+</Note>
+
+## Select more than one bag
+
+Use `quantity` to request multiple bags from one option. The quantity cannot exceed `maximumQuantity`.
+
+```json
+{
+  "additionalBaggage": [
+    {
+      "optionId": "bag_option_...",
+      "quantity": 2
+    }
+  ]
+}
+```
+
+You can also select different options for different passengers or segments.
+
+```json
+{
+  "additionalBaggage": [
+    {
+      "optionId": "bag_option_for_passenger_1",
+      "quantity": 2
+    },
+    {
+      "optionId": "bag_option_for_passenger_2",
+      "quantity": 1
+    }
+  ]
+}
+```
+
+## Create the order
+
+Pass `additionalBaggage` to `POST /v1/air/orders` with the selected offer and passenger details.
+
+The order total, wallet debit, payment, and ticketing amount include the selected baggage. Order responses and webhooks return the selections as `additionalBaggage`.
+
+<Warning>
+  Retrieve the offer again immediately before creating the order. The API rejects unavailable options, duplicate option IDs, and quantities above the allowed maximum.
+</Warning>

@@ -76,7 +76,8 @@
           {
             "group": "Search",
             "pages": [
-              "tenant-api/offers"
+              "tenant-api/offers",
+              "tenant-api/additional-baggage"
             ]
           },
           {

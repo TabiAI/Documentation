@@ -205,15 +205,15 @@ Retrieve a single offer by ID to view specific pricing and itinerary details bef
 
 | Parameter | Description |
 | :--- | :--- |
-| `return_available_services` | Include optional services such as seats and baggage. |
+| `include_additional_baggage` | Set to `true` to include normalized additional baggage options. |
 
 ---
 
 ### Example Request
 
 ```bash
-curl [https://sandbox.travelbase.ai/v1/air/offers/off_123](https://sandbox.travelbase.ai/v1/air/offers/off_123) \
-  -H "x-api-key: tb_live_xxxxxxxxx"
+curl "https://sandbox.travelbase.ai/v1/air/offers/off_123?include_additional_baggage=true" \
+  -H "x-api-key: tb_test_xxxxxxxxx"
 ```
 
 # Response
@@ -244,9 +244,29 @@ curl [https://sandbox.travelbase.ai/v1/air/offers/off_123](https://sandbox.trave
     {
       "type": "adult"
     }
+  ],
+  "additionalBaggageOptions": [
+    {
+      "optionId": "bag_option_...",
+      "maximumQuantity": 2,
+      "passengerIds": ["psg_1"],
+      "segmentIds": ["seg_1"],
+      "unitPrice": {
+        "amount": "25.00",
+        "amountCents": 2500,
+        "currency": "USD"
+      },
+      "details": {
+        "type": "checked",
+        "weight": 23,
+        "weightUnit": "kg"
+      }
+    }
   ]
 }
 ```
+
+An empty `additionalBaggageOptions` array means the selected offer does not currently support extra bags. Retrieve the offer again immediately before creating the order because availability and prices can change.
 
 ---
 
